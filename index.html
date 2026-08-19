@@ -1,45 +1,37 @@
 <!DOCTYPE html>
-<html lang="ja">
+<html lang="ja" class="dark">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>サイタマニア - ポップクイズ</title>
-  
+  <title>CYBER-SAITAMA // PROTOCOL</title>
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
-  
-  <!-- Google Fonts (丸みのあるフォント) -->
+  <!-- Google Fonts: Plus Jakarta Sans & JetBrains Mono -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@500;700;900&display=swap" rel="stylesheet">
-  
-  <!-- 紙吹雪ライブラリ -->
-  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
-  
-  <!-- Lucide Icons -->
-  <script src="https://unpkg.com/lucide@latest"></script>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;800&family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
 
   <script>
     tailwind.config = {
+      darkMode: 'class',
       theme: {
         extend: {
-          fontFamily: { sans: ['"M PLUS Rounded 1c"', 'sans-serif'] },
           colors: {
-            saitama: {
-              bg: '#F3F4F6', card: '#FFFFFF', text: '#374151',
-              primary: '#10B981', primaryDark: '#059669', primaryShadow: '#047857',
-              accent: '#3B82F6', wrong: '#EF4444', wrongShadow: '#B91C1C',
+            cyber: {
+              black: '#0A0F1D',
+              navy: '#0F172A',
+              card: '#131D36',
+              cyan: '#38BDF8',
+              amber: '#F59E0B',
+              emerald: '#10B981',
+              rose: '#F43F5E',
+              border: '#1E293B',
+              textMuted: '#64748B'
             }
           },
-          boxShadow: { 'squishy': '0 4px 0 0', 'squishy-active': '0 0px 0 0' },
-          animation: {
-            'slide-up': 'slideUp 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards',
-            'pop': 'pop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards',
-            'pulse-fast': 'pulse 1s cubic-bezier(0.4, 0, 0.6, 1) infinite'
-          },
-          keyframes: {
-            slideUp: { '0%': { transform: 'translateY(20px)', opacity: '0' }, '100%': { transform: 'translateY(0)', opacity: '1' } },
-            pop: { '0%': { transform: 'scale(0.95)', opacity: '0' }, '100%': { transform: 'scale(1)', opacity: '1' } }
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+            mono: ['"JetBrains Mono"', 'monospace']
           }
         }
       }
@@ -47,256 +39,344 @@
   </script>
 
   <style>
-    body { background-color: #F3F4F6; -webkit-tap-highlight-color: transparent; overscroll-behavior-y: none; }
-    .btn-squishy { transition: all 0.1s cubic-bezier(0.4, 0, 0.2, 1); }
-    .btn-squishy:active:not(:disabled) { transform: translateY(4px); }
-    .speech-bubble::after {
-      content: ''; position: absolute; bottom: -10px; left: 24px;
-      border-width: 10px 10px 0; border-style: solid;
-      border-color: #FEF3C7 transparent transparent transparent; display: block; width: 0;
+    body {
+      background-color: #0A0F1D;
+      color: #E2E8F0;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+    }
+
+    /* レトロフューチャーなスキャンライン背景 */
+    .scanlines {
+      background: linear-gradient(
+        rgba(18, 16, 16, 0) 50%, 
+        rgba(0, 0, 0, 0.25) 50%
+      ), linear-gradient(
+        90deg,
+        rgba(255, 0, 0, 0.03),
+        rgba(0, 255, 0, 0.01),
+        rgba(0, 0, 255, 0.03)
+      );
+      background-size: 100% 3px, 6px 100%;
+      pointer-events: none;
+    }
+
+    /* 微小グリッチアニメーション */
+    @keyframes glitch {
+      0% { transform: translate(0) }
+      20% { transform: translate(-1px, 1px) }
+      40% { transform: translate(-1px, -1px) }
+      60% { transform: translate(1px, 1px) }
+      80% { transform: translate(1px, -1px) }
+      100% { transform: translate(0) }
+    }
+    .glitch-hover:hover {
+      animation: glitch 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94) both infinite;
+    }
+
+    /* シャープな直線スライドイン */
+    .sharp-slide-in {
+      animation: sharpSlide 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+    @keyframes sharpSlide {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* アウトラインボタンのアクティブトランジション */
+    .cyber-btn {
+      position: relative;
+      transition: all 0.15s ease-out;
+    }
+    .cyber-btn::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      transition: opacity 0.15s ease-out;
+      z-index: 0;
+    }
+    .cyber-btn:active::before {
+      opacity: 0.15;
     }
   </style>
 </head>
-<body class="text-saitama-text h-screen flex flex-col font-sans overflow-hidden">
+<body class="min-h-screen flex flex-col font-sans relative overflow-x-hidden">
+  <div class="fixed inset-0 scanlines z-50"></div>
 
-  <!-- ヘッダー -->
-  <header class="px-5 pt-6 pb-2 shrink-0">
-    <div class="flex items-center justify-between mb-2">
-      <div class="font-black text-xl text-saitama-primary tracking-wider">SAITAMANIA</div>
-      <div class="flex items-center space-x-1 text-saitama-accent font-bold bg-blue-50 px-3 py-1 rounded-full border-2 border-blue-200">
-        <i data-lucide="award" class="w-4 h-4"></i>
-        <span id="scoreText">0 / 0</span>
+  <!-- トップバー (ターミナルヘッダー風) -->
+  <header class="bg-cyber-navy/90 backdrop-blur-md border-b border-cyber-border px-4 py-2.5 sticky top-0 z-40 flex items-center justify-between font-mono">
+    <div class="flex items-center space-x-3">
+      <div class="w-2 h-2 rounded-full bg-cyber-cyan animate-pulse"></div>
+      <div class="text-xs tracking-wider font-extrabold text-slate-100 flex items-center gap-1.5">
+        <span class="text-cyber-cyan">SAITAMA::CORE</span>
+        <span class="text-[10px] text-cyber-textMuted font-normal">[v3.6_SECURE]</span>
       </div>
     </div>
-    <div class="w-full bg-gray-200 rounded-full h-4 overflow-hidden relative">
-      <div id="progressBar" class="bg-saitama-primary h-4 rounded-full transition-all duration-500 ease-out" style="width: 0%">
-        <div class="absolute top-1 left-2 right-2 h-1 bg-white/30 rounded-full"></div>
-      </div>
+    <div class="text-xs text-cyber-textMuted flex items-center space-x-2">
+      <span>SYNC_RATE:</span>
+      <span id="scoreTracker" class="text-cyber-cyan font-bold">0/0</span>
     </div>
   </header>
 
-  <!-- メインコンテンツ -->
-  <main class="flex-1 overflow-y-auto px-5 pb-24 pt-2 flex flex-col space-y-4">
+  <!-- メインビュー -->
+  <main class="flex-1 max-w-md w-full mx-auto p-4 flex flex-col justify-between z-10">
     
-    <div id="badgeContainer" class="flex items-center space-x-2 animate-pop hidden">
-      <span id="badgeCity" class="bg-indigo-100 text-indigo-700 font-bold px-3 py-1 rounded-xl text-sm border-2 border-indigo-200 shadow-sm"></span>
-      <span id="badgeTheme" class="bg-white text-gray-500 font-bold px-3 py-1 rounded-xl text-sm border-2 border-gray-200 shadow-sm"></span>
-    </div>
-
-    <!-- 問題カード -->
-    <div class="bg-saitama-card rounded-3xl p-6 border-2 border-gray-200 shadow-sm animate-pop">
-      <h2 id="questionText" class="text-lg md:text-xl font-bold leading-relaxed text-gray-800 animate-pulse-fast text-center py-4">
-        最新のクイズデータを<br>ダウンロード中...
-      </h2>
-    </div>
-
-    <!-- 選択肢グリッド -->
-    <div id="optionsContainer" class="grid grid-cols-1 gap-3 mt-2"></div>
-
-    <!-- 解説モーダルカード -->
-    <div id="explanationCard" class="hidden animate-slide-up flex flex-col space-y-4 pt-4">
-      <div id="resultBanner" class="rounded-2xl p-4 font-black text-xl text-center border-b-4">
-        <span id="resultIcon"></span> <span id="resultTitle"></span>
-      </div>
-      <div class="relative bg-amber-100 border-2 border-amber-300 rounded-3xl p-5 speech-bubble mt-2">
-        <div class="flex items-center space-x-2 mb-2 text-amber-600 font-black">
-          <i data-lucide="message-circle" class="w-5 h-5"></i>
-          <span>会話で使える！マウントフレーズ</span>
+    <!-- クイズコンテナ -->
+    <div id="quizContainer" class="flex-1 flex flex-col">
+      
+      <!-- メタデータ / ターミナルタグ -->
+      <div class="flex items-center gap-2 mb-3 font-mono text-[11px] flex-wrap">
+        <div class="bg-cyber-navy border border-cyber-cyan/30 text-cyber-cyan px-2 py-0.5 rounded-none flex items-center gap-1">
+          <span class="text-[9px] opacity-60">LOC:</span>
+          <span id="cityBadge" class="font-bold">INITIALIZING</span>
         </div>
-        <p id="mountText" class="font-bold text-gray-800 leading-relaxed"></p>
-      </div>
-      <div class="bg-white rounded-3xl p-5 border-2 border-gray-200 shadow-sm mt-4">
-        <div class="mb-4">
-          <span class="text-xs font-bold text-gray-400 uppercase tracking-wider block mb-1">解説</span>
-          <p id="explanationText" class="text-gray-700 font-medium leading-relaxed"></p>
+        <div class="bg-cyber-navy border border-cyber-border text-slate-400 px-2 py-0.5 rounded-none flex items-center gap-1">
+          <span class="text-[9px] opacity-60">TAG:</span>
+          <span id="subThemeBadge">-</span>
         </div>
-        <div class="pt-3 border-t-2 border-gray-100 flex items-start space-x-2">
-          <i data-lucide="map-pin" class="w-5 h-5 text-red-500 shrink-0 mt-0.5"></i>
+        <div class="ml-auto bg-cyber-navy border border-cyber-amber/40 text-cyber-amber px-2 py-0.5 rounded-none font-bold">
+          [<span id="difficultyBadge">AUTH</span>]
+        </div>
+      </div>
+
+      <!-- 問題カード -->
+      <div class="bg-cyber-card border-l-2 border-l-cyber-cyan border-y border-r border-cyber-border p-4 mb-4 shadow-2xl relative">
+        <div class="font-mono text-[10px] text-cyber-cyan/60 uppercase tracking-widest mb-1.5">QUERY_DECRYPTED</div>
+        <h1 id="questionText" class="text-sm sm:text-base font-bold leading-snug text-slate-100 font-sans">
+          システム初期化中... APIからのデータ取得待機中
+        </h1>
+      </div>
+
+      <!-- 4択ボタン (アウトラインスタイル) -->
+      <div id="optionsContainer" class="space-y-2 mb-4 font-sans">
+        <!-- JSでボタンが生成されます -->
+      </div>
+
+      <!-- 解説エリア (Data Unlocked) -->
+      <div id="explanationArea" class="hidden sharp-slide-in space-y-2.5 mb-4 font-sans">
+        <!-- ステータスバー -->
+        <div id="resultStatus" class="font-mono text-[11px] px-3 py-1.5 border flex items-center justify-between">
+          <span id="statusTag" class="font-bold">STATUS: OK</span>
+          <span id="statusSub" class="text-[10px] text-cyber-textMuted">DATA_UNLOCKED</span>
+        </div>
+
+        <!-- マウントフレーズ（警告色ハイライト） -->
+        <div class="bg-cyber-navy/80 border-l-2 border-l-cyber-amber border-y border-r border-cyber-border p-3">
+          <div class="font-mono text-[10px] font-bold text-cyber-amber flex items-center gap-1 mb-1">
+            <span class="w-1.5 h-1.5 bg-cyber-amber inline-block"></span>
+            <span>EXPLOIT_PAYLOAD (雑談マウント):</span>
+          </div>
+          <p id="mountPhrase" class="text-xs text-slate-200 leading-relaxed font-semibold pl-2.5"></p>
+        </div>
+
+        <!-- 公式解説 (タイプライター表示) -->
+        <div class="bg-cyber-card/70 border border-cyber-border p-3 space-y-2">
           <div>
-            <span class="text-xs font-bold text-gray-400 block mb-0.5">巡礼スポット</span>
-            <span id="spotText" class="font-bold text-gray-800"></span>
+            <div class="font-mono text-[10px] text-cyber-textMuted uppercase tracking-wider mb-1">ARCHIVE_LOG:</div>
+            <p id="explanationText" class="text-xs text-slate-300 leading-relaxed font-mono min-h-[4rem]"></p>
+          </div>
+          
+          <div id="spotSection" class="pt-2 border-t border-cyber-border/80 flex items-center justify-between font-mono text-[11px]">
+            <span class="text-cyber-textMuted text-[10px]">MISSION_TARGET:</span>
+            <span id="spotName" class="text-cyber-cyan font-bold"></span>
           </div>
         </div>
       </div>
     </div>
+
+    <!-- コントロールバー -->
+    <div class="pt-2">
+      <button id="nextBtn" class="hidden w-full py-3 bg-cyber-cyan hover:bg-sky-400 active:scale-[0.99] text-cyber-black font-mono font-extrabold text-xs tracking-wider uppercase transition-all shadow-[0_0_15px_rgba(56,189,248,0.3)]">
+        CONTINUE_EXECUTION →
+      </button>
+    </div>
   </main>
 
-  <!-- フッター固定アクションボタン -->
-  <div id="footerAction" class="hidden fixed bottom-0 left-0 right-0 p-5 bg-gradient-to-t from-gray-100 via-gray-100/90 to-transparent">
-    <button id="nextBtn" class="btn-squishy w-full bg-saitama-primary text-white font-black text-lg py-4 rounded-2xl shadow-squishy shadow-saitama-primaryShadow border-2 border-saitama-primaryDark hover:bg-emerald-400">
-      つぎへ進む
-    </button>
-  </div>
-
   <script>
-    lucide.createIcons();
+    // ==============================================================
+    // API設定: デプロイしたGASのWebアプリURLを入力してください
+    // ==============================================================
+    const API_URL = "https://script.google.com/macros/s/AKfycbzgKf5P9EZi9DACFiL9JWqXpFiBE6qDSgA2ATScYz5pALpMIvDYrknPuieU4FMn-0k/exec";
 
-    // =========================================================================
-    // ★ ここにGASで発行したウェブアプリのURL（https://script.google.com/...）を貼る
-    // =========================================================================
-    const API_URL = "https://script.google.com/macros/s/AKfycbzgKf5P9EZi9DACFiL9JWqXpFiBE6qDSgA2ATScYz5pALpMIvDYrknPuieU4FMn-0k/exec"; 
-    
-    let quizDatabase = [];
+    let QUIZ_DATABASE = [];
     let currentIndex = 0;
     let correctScore = 0;
     let isAnswered = false;
+    let typewriterTimer = null;
 
-    const el = {
-      progress: document.getElementById('progressBar'),
-      score: document.getElementById('scoreText'),
-      badgeContainer: document.getElementById('badgeContainer'),
-      badgeCity: document.getElementById('badgeCity'),
-      badgeTheme: document.getElementById('badgeTheme'),
-      question: document.getElementById('questionText'),
-      options: document.getElementById('optionsContainer'),
-      expCard: document.getElementById('explanationCard'),
-      resBanner: document.getElementById('resultBanner'),
-      resIcon: document.getElementById('resultIcon'),
-      resTitle: document.getElementById('resultTitle'),
-      mount: document.getElementById('mountText'),
-      expText: document.getElementById('explanationText'),
-      spot: document.getElementById('spotText'),
-      footer: document.getElementById('footerAction'),
-      nextBtn: document.getElementById('nextBtn'),
-    };
+    // DOM要素
+    const cityBadge = document.getElementById('cityBadge');
+    const subThemeBadge = document.getElementById('subThemeBadge');
+    const difficultyBadge = document.getElementById('difficultyBadge');
+    const questionText = document.getElementById('questionText');
+    const optionsContainer = document.getElementById('optionsContainer');
+    const explanationArea = document.getElementById('explanationArea');
+    const resultStatus = document.getElementById('resultStatus');
+    const statusTag = document.getElementById('statusTag');
+    const mountPhrase = document.getElementById('mountPhrase');
+    const explanationText = document.getElementById('explanationText');
+    const spotName = document.getElementById('spotName');
+    const nextBtn = document.getElementById('nextBtn');
+    const scoreTracker = document.getElementById('scoreTracker');
 
-    // 初期化（API通信）
-    async function init() {
+    // 初期化とAPIフェッチ
+    async function initTerminal() {
+      questionText.innerHTML = '<span class="font-mono text-xs text-cyber-cyan animate-pulse">CONNECTING TO SAITAMA_DATABASE...</span>';
+      
       try {
         const response = await fetch(API_URL);
         const data = await response.json();
         
         if (data && data.length > 0) {
-          quizDatabase = shuffleArray(data);
-          updateScore();
-          el.question.classList.remove('animate-pulse-fast', 'text-center', 'py-4');
-          el.badgeContainer.classList.remove('hidden');
-          loadQuestion();
+          QUIZ_DATABASE = shuffleArray(data);
+          updateScoreDisplay();
+          loadQuestion(0);
         } else {
-          showError("クイズデータが見つかりません。スプレッドシートを確認してください。");
+          questionText.innerHTML = '<span class="font-mono text-xs text-cyber-rose">ERROR: NO_RECORDS_FOUND</span>';
         }
-      } catch (e) {
-        console.error(e);
-        showError("通信エラーが発生しました。<br>GASのURL設定やアクセス権限を確認してください。");
+      } catch (err) {
+        console.error("API_FETCH_FAILURE:", err);
+        questionText.innerHTML = '<span class="font-mono text-xs text-cyber-rose">FATAL: DATABASE_CONNECTION_REFUSED</span>';
       }
     }
 
-    function showError(msg) {
-      el.question.classList.remove('animate-pulse-fast');
-      el.question.innerHTML = `<span class="text-red-500 font-bold">⚠️ エラー</span><br><span class="text-sm font-medium">${msg}</span>`;
-    }
-
-    function loadQuestion() {
+    // 問題ロード
+    function loadQuestion(index) {
       isAnswered = false;
-      el.expCard.classList.add('hidden');
-      el.footer.classList.add('hidden');
+      if (typewriterTimer) clearInterval(typewriterTimer);
       
-      const q = quizDatabase[currentIndex];
-      
-      const progressPercent = (currentIndex / quizDatabase.length) * 100;
-      el.progress.style.width = `${progressPercent}%`;
-      
-      el.badgeCity.textContent = q.city || "埼玉全域";
-      el.badgeTheme.textContent = q.subTheme || "雑学";
-      el.question.textContent = q.question;
+      explanationArea.classList.add('hidden');
+      nextBtn.classList.add('hidden');
 
-      const options = [
-        { text: q.correctAnswer, correct: true },
-        { text: q.dummyOption1, correct: false },
-        { text: q.dummyOption2, correct: false },
-        { text: q.dummyOption3, correct: false }
-      ];
+      const data = QUIZ_DATABASE[index];
       
-      el.options.innerHTML = '';
-      shuffleArray(options).forEach(opt => {
+      cityBadge.textContent = data.city || "ALL_AREAS";
+      subThemeBadge.textContent = data.subTheme || "GENERAL";
+      difficultyBadge.textContent = data.difficulty || "LV.1";
+      questionText.textContent = data.question;
+
+      // 選択肢シャッフル
+      const rawOptions = [
+        { text: data.correctAnswer, isCorrect: true },
+        { text: data.dummyOption1, isCorrect: false },
+        { text: data.dummyOption2, isCorrect: false },
+        { text: data.dummyOption3, isCorrect: false }
+      ];
+      const shuffledOptions = shuffleArray(rawOptions);
+
+      // アウトラインボタンスタイルのレンダリング
+      optionsContainer.innerHTML = '';
+      shuffledOptions.forEach((opt, i) => {
         const btn = document.createElement('button');
-        btn.className = `btn-squishy w-full text-left bg-white border-2 border-gray-200 rounded-2xl p-4 font-bold text-gray-700 shadow-squishy shadow-gray-200`;
-        btn.innerHTML = `<span class="text-[15px] leading-snug">${opt.text}</span>`;
-        btn.onclick = () => handleAnswer(btn, opt.correct, q);
-        el.options.appendChild(btn);
+        btn.className = "cyber-btn w-full p-3 bg-cyber-card/40 hover:bg-cyber-navy border border-cyber-border hover:border-cyber-cyan/60 rounded-none text-left text-xs font-semibold text-slate-200 flex items-center justify-between glitch-hover group";
+        btn.innerHTML = `
+          <div class="flex items-center space-x-3 z-10">
+            <span class="font-mono text-[10px] text-cyber-textMuted group-hover:text-cyber-cyan">[0${i + 1}]</span>
+            <span class="leading-relaxed">${opt.text}</span>
+          </div>
+          <span class="font-mono text-[10px] text-cyber-cyan opacity-0 group-hover:opacity-100 transition-opacity z-10">SELECT_</span>
+        `;
+        btn.onclick = () => selectOption(btn, opt.isCorrect, data);
+        optionsContainer.appendChild(btn);
       });
     }
 
-    function handleAnswer(selectedBtn, isCorrect, q) {
+    // 選択肢確定処理
+    function selectOption(selectedBtn, isCorrect, data) {
       if (isAnswered) return;
       isAnswered = true;
 
-      const allBtns = el.options.querySelectorAll('button');
-      allBtns.forEach(b => {
-        b.disabled = true;
-        b.className = `w-full text-left bg-gray-50 border-2 border-gray-200 rounded-2xl p-4 font-bold text-gray-400 opacity-60`;
+      const buttons = optionsContainer.querySelectorAll('button');
+      buttons.forEach(btn => {
+        btn.disabled = true;
+        btn.classList.remove('glitch-hover', 'hover:border-cyber-cyan/60', 'hover:bg-cyber-navy');
       });
 
       if (isCorrect) {
         correctScore++;
-        updateScore();
-        selectedBtn.className = `w-full text-left bg-emerald-50 border-2 border-saitama-primary rounded-2xl p-4 font-bold text-saitama-primaryDark shadow-squishy-active`;
-        
-        confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 }, colors: ['#10B981', '#3B82F6', '#F59E0B'] });
-
-        el.resBanner.className = "rounded-2xl p-4 font-black text-xl text-center border-b-4 bg-emerald-100 text-emerald-600 border-emerald-300";
-        el.resIcon.textContent = "🎉";
-        el.resTitle.textContent = "大正解！";
+        updateScoreDisplay();
+        // 正解: ネオングリーンで塗りつぶし
+        selectedBtn.className = "cyber-btn w-full p-3 bg-cyber-emerald border border-cyber-emerald rounded-none text-left text-xs font-bold text-slate-950 flex items-center justify-between";
+        resultStatus.className = "font-mono text-[11px] px-3 py-1.5 border bg-cyber-emerald/10 border-cyber-emerald/40 text-cyber-emerald flex items-center justify-between";
+        statusTag.textContent = "STATUS: 200_CORRECT";
       } else {
-        selectedBtn.className = `w-full text-left bg-red-50 border-2 border-saitama-wrong rounded-2xl p-4 font-bold text-saitama-wrong shadow-squishy-active`;
-        
-        el.resBanner.className = "rounded-2xl p-4 font-black text-xl text-center border-b-4 bg-red-100 text-red-500 border-red-300";
-        el.resIcon.textContent = "💦";
-        el.resTitle.textContent = "ざんねん！";
+        // 不正解: ネオンローズで塗りつぶし
+        selectedBtn.className = "cyber-btn w-full p-3 bg-cyber-rose border border-cyber-rose rounded-none text-left text-xs font-bold text-white flex items-center justify-between";
+        resultStatus.className = "font-mono text-[11px] px-3 py-1.5 border bg-cyber-rose/10 border-cyber-rose/40 text-cyber-rose flex items-center justify-between";
+        statusTag.textContent = "STATUS: 400_FAILED";
       }
 
-      el.mount.textContent = q.mountPhrase;
-      el.expText.textContent = q.explanation;
-      el.spot.textContent = q.spot || "指定なし";
+      // マウントフレーズ
+      mountPhrase.textContent = data.mountPhrase || "DATA_NOT_FOUND";
+      spotName.textContent = data.spot || "NONE";
 
-      el.expCard.classList.remove('hidden');
-      el.footer.classList.remove('hidden');
+      explanationArea.classList.remove('hidden');
+      nextBtn.classList.remove('hidden');
 
-      setTimeout(() => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }), 100);
+      // タイプライターエフェクトの実行
+      typewriterEffect(explanationText, data.explanation || "No additional records.");
     }
 
-    el.nextBtn.onclick = () => {
+    // タイプライターエフェクト関数
+    function typewriterEffect(element, text) {
+      element.textContent = "";
+      let index = 0;
+      if (typewriterTimer) clearInterval(typewriterTimer);
+      
+      typewriterTimer = setInterval(() => {
+        if (index < text.length) {
+          element.textContent += text.charAt(index);
+          index++;
+        } else {
+          clearInterval(typewriterTimer);
+        }
+      }, 15);
+    }
+
+    function updateScoreDisplay() {
+      scoreTracker.textContent = `${correctScore}/${QUIZ_DATABASE.length}`;
+    }
+
+    nextBtn.onclick = () => {
       currentIndex++;
-      if (currentIndex < quizDatabase.length) {
-        loadQuestion();
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+      if (currentIndex < QUIZ_DATABASE.length) {
+        loadQuestion(currentIndex);
       } else {
-        showResult();
+        showTerminalResult();
       }
     };
 
-    function updateScore() {
-      el.score.textContent = `${correctScore} / ${quizDatabase.length}`;
-    }
-
-    function showResult() {
-      el.progress.style.width = '100%';
-      el.badgeContainer.classList.add('hidden');
-      el.options.classList.add('hidden');
-      el.expCard.classList.add('hidden');
-      el.footer.innerHTML = `<button onclick="location.reload()" class="btn-squishy w-full bg-saitama-accent text-white font-black text-lg py-4 rounded-2xl shadow-squishy shadow-blue-700 border-2 border-blue-600 hover:bg-blue-400">もう一度あそぶ</button>`;
+    function showTerminalResult() {
+      const quizContainer = document.getElementById('quizContainer');
+      const rate = Math.round((correctScore / QUIZ_DATABASE.length) * 100);
       
-      const rate = Math.round((correctScore / quizDatabase.length) * 100);
-      
-      el.question.parentElement.innerHTML = `
-        <div class="text-center py-8">
-          <div class="text-6xl mb-4">🏆</div>
-          <h2 class="text-2xl font-black text-gray-800 mb-2">クイズ完了！</h2>
-          <p class="text-4xl font-black text-saitama-primary mb-6">${correctScore}問正解 <span class="text-lg text-gray-500">/ ${quizDatabase.length}問</span></p>
-          <div class="bg-gray-100 rounded-2xl p-4 border-2 border-gray-200 inline-block">
-            <span class="text-sm font-bold text-gray-500 block">正答率</span>
-            <span class="text-2xl font-black text-gray-800">${rate}%</span>
+      quizContainer.innerHTML = `
+        <div class="sharp-slide-in bg-cyber-card border border-cyber-cyan p-6 text-center space-y-4 my-auto font-mono">
+          <div class="text-[10px] text-cyber-cyan tracking-widest uppercase">PROTOCOL_COMPLETED</div>
+          <div class="text-4xl font-extrabold text-slate-100">${rate}%</div>
+          <div class="text-xs text-cyber-textMuted">DATA_INTEGRITY: ${correctScore} / ${QUIZ_DATABASE.length} PASSED</div>
+          <div class="border-t border-cyber-border pt-4">
+            <button onclick="location.reload()" class="w-full py-3 bg-cyber-navy hover:bg-cyber-border border border-cyber-cyan text-cyber-cyan font-bold text-xs">
+              RELOAD_SEQUENCE
+            </button>
           </div>
         </div>
       `;
+      nextBtn.classList.add('hidden');
     }
 
-    function shuffleArray(arr) {
-      return arr.sort(() => Math.random() - 0.5);
+    function shuffleArray(array) {
+      const arr = [...array];
+      for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+      }
+      return arr;
     }
 
-    // アプリ起動
-    init();
+    // 起動
+    initTerminal();
   </script>
 </body>
 </html>
