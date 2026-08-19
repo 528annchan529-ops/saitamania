@@ -101,66 +101,20 @@
     </div>
   </main>
 
+  <!-- 前半のHTML（<style>や<header><main>など）は前回のコードと全く同じです -->
+
   <script>
     // ==============================================================
-    // ★ スプレッドシートから生成されたJSONデータをここに貼り付けます
+    // ★ GASのウェブアプリURLをここに貼り付けます
     // ==============================================================
-    const QUIZ_DATABASE = [
-      {
-        "quizId": "Q00001",
-        "knowledgeId": "S00001",
-        "subTheme": "結晶片岩",
-        "city": "長瀞町",
-        "difficulty": "中級",
-        "question": "長瀞（ながとろ）が「日本地質学発祥の地」と呼ばれる最大の理由は？",
-        "correctAnswer": "地球深部の結晶片岩が地表に広く露出しているから",
-        "dummyOption1": "日本で初めて恐竜の化石が発掘されたから",
-        "dummyOption2": "日本最古の火山活動の噴火口が存在するから",
-        "dummyOption3": "秩父セメントの原料が日本で最初に発見されたから",
-        "explanation": "明治時代にナウマン博士（ナウマン象の命名者）たちが研究を行い、地下20〜30kmの超高圧下で形成された結晶片岩が広く露出する世界的スポット「地球の窓」として評価されたためです。",
-        "mountPhrase": "長瀞ってただの舟下りスポットだと思ってない？実は世界的にも超貴重な『地球の窓』って呼ばれる地質学の聖地なんだよ。",
-        "spot": "長瀞・岩畳（長瀞町）"
-      },
-      {
-        "quizId": "Q00002",
-        "knowledgeId": "S00002",
-        "subTheme": "ソウルフード",
-        "city": "所沢市",
-        "difficulty": "初級",
-        "question": "埼玉県民のソウルフード「山田うどん食堂」。その本社が置かれている市町村は？",
-        "correctAnswer": "所沢市",
-        "dummyOption1": "川越市",
-        "dummyOption2": "春日部市",
-        "dummyOption3": "熊谷市",
-        "explanation": "山田うどんの発祥は所沢市の製麺所です。農家の方々が農作業の合間に消化よく素早くかきこめるよう、麺が柔らかめに作られているのが伝統的な特徴です。",
-        "mountPhrase": "山田うどんが柔らかいのは手抜きじゃなくて、昔の埼玉農家さんがサッと食べてすぐ畑に戻れるように工夫された優しさの歴史なんだよね。",
-        "spot": "山田うどん食堂 本店（所沢市上安松）"
-      },
-      {
-        "quizId": "Q00003",
-        "knowledgeId": "S00003",
-        "subTheme": "土木・治水遺産",
-        "city": "さいたま市緑区",
-        "difficulty": "上級",
-        "question": "パナマ運河と同じ「閘門式（こうもんしき）」の水位調整システムが、江戸時代（1731年）に日本で初めて作られた埼玉の遺構は？",
-        "correctAnswer": "見沼通船堀（みぬまつうせんぼり）",
-        "dummyOption1": "葛西用水路",
-        "dummyOption2": "首都圏外郭放水路",
-        "dummyOption3": "新河岸川舟運跡",
-        "explanation": "見沼通船堀は享保16年（1731年）に開削された日本最古級の閘門式運河です。東西の見沼代用水と芝川との水位差（約3m）を2対の関板で調整して船を通していました。",
-        "mountPhrase": "パナマ運河と同じ原理の水位調節システム、実は江戸時代の埼玉に見沼通船堀としてすでに完成してたの知ってた？",
-        "spot": "見沼通船堀公園（さいたま市緑区）"
-      }
-    ];
+    const API_URL = "https://script.google.com/macros/s/AKfycbzgKf5P9EZi9DACFiL9JWqXpFiBE6qDSgA2ATScYz5pALpMIvDYrknPuieU4FMn-0k/exec";
 
-    // ==============================================================
-    // アプリケーションロジック
-    // ==============================================================
+    let QUIZ_DATABASE = [];
     let currentIndex = 0;
     let correctScore = 0;
     let isAnswered = false;
 
-    // DOM要素
+    // DOM要素（前回と同じ）
     const cityBadge = document.getElementById('cityBadge');
     const subThemeBadge = document.getElementById('subThemeBadge');
     const difficultyBadge = document.getElementById('difficultyBadge');
@@ -176,14 +130,37 @@
     const nextBtn = document.getElementById('nextBtn');
     const correctCountElem = document.getElementById('correctCount');
     const totalCountElem = document.getElementById('totalCount');
+    const quizContainer = document.getElementById('quizContainer');
 
-    // 初期化
-    function initQuiz() {
-      totalCountElem.textContent = QUIZ_DATABASE.length;
-      loadQuestion(0);
+    // ★非同期でスプレッドシートからデータを取得する初期化関数
+    async function initQuiz() {
+      // ロード中の表示
+      questionText.innerHTML = '<span class="animate-pulse">スプレッドシートから最新のクイズを読み込み中... ⏳</span>';
+      
+      try {
+        // GASのAPIを叩く
+        const response = await fetch(API_URL);
+        const data = await response.json();
+        
+        if (data && data.length > 0) {
+          // 取得したデータをシャッフルしてセット（毎回違う順番で出題）
+          QUIZ_DATABASE = shuffleArray(data);
+          
+          // 初回は10問だけに絞るなどの処理を入れるのもアリです（今回は全問出題）
+          totalCountElem.textContent = QUIZ_DATABASE.length;
+          
+          // 最初の問題を読み込む
+          loadQuestion(0);
+        } else {
+          questionText.textContent = "クイズデータが0件です。スプレッドシートを確認してください。";
+        }
+      } catch (error) {
+        console.error("API読み込みエラー:", error);
+        questionText.textContent = "データの読み込みに失敗しました。インターネット接続やURLを確認してください。";
+      }
     }
 
-    // 問題の読み込み
+    // 問題の読み込み（前回と同じ）
     function loadQuestion(index) {
       isAnswered = false;
       explanationArea.classList.add('hidden');
@@ -196,7 +173,6 @@
       difficultyBadge.textContent = data.difficulty || "初級";
       questionText.textContent = `Q${index + 1}. ${data.question}`;
 
-      // 選択肢をまとめてシャッフル
       const rawOptions = [
         { text: data.correctAnswer, isCorrect: true },
         { text: data.dummyOption1, isCorrect: false },
@@ -205,7 +181,6 @@
       ];
       const shuffledOptions = shuffleArray(rawOptions);
 
-      // ボタンの生成
       optionsContainer.innerHTML = '';
       shuffledOptions.forEach((opt, i) => {
         const btn = document.createElement('button');
@@ -219,12 +194,11 @@
       });
     }
 
-    // 選択肢タップ時の処理
+    // 選択肢タップ時の処理（前回と同じ）
     function selectOption(selectedBtn, isCorrect, data) {
       if (isAnswered) return;
       isAnswered = true;
 
-      // 全ボタンを無効化し、正解・不正解を色分け
       const buttons = optionsContainer.querySelectorAll('button');
       buttons.forEach(btn => {
         btn.disabled = true;
@@ -245,7 +219,6 @@
         resultText.textContent = "不正解！ここで覚えてマウントを取りましょう";
       }
 
-      // 解説・マウントフレーズのセット
       mountPhrase.textContent = data.mountPhrase;
       explanationText.textContent = data.explanation;
       spotName.textContent = data.spot || "特になし";
@@ -253,13 +226,12 @@
       explanationArea.classList.remove('hidden');
       nextBtn.classList.remove('hidden');
 
-      // スクロールをスムーズに下部に移動
       setTimeout(() => {
         window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
       }, 50);
     }
 
-    // 次の問題へ
+    // 次の問題へ（前回と同じ）
     nextBtn.onclick = () => {
       currentIndex++;
       if (currentIndex < QUIZ_DATABASE.length) {
@@ -270,11 +242,9 @@
       }
     };
 
-    // 最終スコア画面
+    // 最終スコア画面（前回と同じ）
     function showFinalResult() {
-      const quizContainer = document.getElementById('quizContainer');
       const rate = Math.round((correctScore / QUIZ_DATABASE.length) * 100);
-      
       let rankTitle = "彩の国ビギナー";
       if (rate >= 80) rankTitle = "歩く埼玉百科事典（埼玉神）";
       else if (rate >= 50) rankTitle = "さいたまマスター";
