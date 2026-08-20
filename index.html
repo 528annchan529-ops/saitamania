@@ -3,32 +3,33 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>埼玉巡礼 知識の書</title>
+  <title>The Secret Guide - Saitama</title>
   
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
   
-  <!-- Google Fonts: Noto Serif JP (明朝体) -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@400;600;700;900&display=swap" rel="stylesheet">
+  <!-- Google Fonts: 游明朝に近いNoto Serif JP（見出し・ラグジュアリー感）と、Noto Sans JP（本文） -->
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@400;700&family=Noto+Sans+JP:wght@300;400;500&display=swap" rel="stylesheet">
   
-  <!-- Lucide Icons -->
-  <script src="https://unpkg.com/lucide@latest"></script>
-
   <script>
     tailwind.config = {
       theme: {
         extend: {
-          colors: {
-            kinari: '#FBF8F1', // 生成り
-            sumi: '#2C2C2C',   // 墨
-            shu: '#E63946',    // 朱
-            matcha: '#4A5D23', // 抹茶
-            usuzumi: '#E2DFD8' // 薄墨（罫線など）
-          },
           fontFamily: {
             serif: ['"Noto Serif JP"', 'serif'],
+            sans: ['"Noto Sans JP"', 'sans-serif'],
+          },
+          colors: {
+            // ディープネイビー背景
+            luxuryBg: '#0b101a',
+            luxuryPanel: '#131b2a',
+            // シャンパンゴールド系
+            champagne: '#D4AF37',
+            champagneLight: '#F3E5AB',
+            champagneDark: '#AA8822',
+            // オフホワイト系
+            offWhite: '#F8F9FA',
+            mutedWhite: '#A0ABC0'
           }
         }
       }
@@ -36,211 +37,176 @@
   </script>
 
   <style>
-    /* 和紙のような微細なノイズと設定 */
     body {
-      background-color: #FBF8F1;
-      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.04'/%3E%3C/svg%3E");
-      color: #2C2C2C;
       -webkit-tap-highlight-color: transparent;
       user-select: none;
+      background-color: #0b101a;
+      /* 背景にうっすらとノイズ/テクスチャ感を出す */
+      background-image: radial-gradient(circle at 50% 0%, #1a253a 0%, #0b101a 70%);
+      background-attachment: fixed;
     }
 
-    /* 判子（ハンコ）が押されるアニメーション */
-    .stamp-animation {
-      animation: stampIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
-      opacity: 0;
-      transform: scale(2) rotate(-15deg);
+    /* エレガントなフェードイン */
+    .fade-in {
+      animation: fadeIn 0.8s cubic-bezier(0.22, 1, 0.36, 1) forwards;
     }
-    @keyframes stampIn {
-      0% { opacity: 0; transform: scale(2.5) rotate(-20deg); }
-      50% { opacity: 1; transform: scale(0.9) rotate(5deg); }
-      100% { opacity: 0.9; transform: scale(1) rotate(-5deg); }
-    }
-
-    /* ふわっと浮かび上がる（解説エリア等） */
-    .fade-up {
-      animation: fadeUp 0.4s ease-out forwards;
-      opacity: 0;
-      transform: translateY(10px);
-    }
-    @keyframes fadeUp {
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
       to { opacity: 1; transform: translateY(0); }
     }
 
-    /* 筆のストローク風アンダーライン */
-    .brush-underline {
-      position: relative;
-      display: inline-block;
-      z-index: 1;
-    }
-    .brush-underline::after {
-      content: '';
-      position: absolute;
-      bottom: 2px;
-      left: -2%;
-      width: 104%;
-      height: 8px;
-      background-color: #E63946;
-      opacity: 0.3;
-      z-index: -1;
-      border-radius: 4px 10px 4px 10px / 10px 4px 10px 4px;
-      transform: rotate(-1deg);
+    /* Glassmorphism（すりガラス） */
+    .glass-panel {
+      background: rgba(19, 27, 42, 0.6);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(212, 175, 55, 0.15); /* 極細のゴールドボーダー */
+      box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
     }
 
-    /* 選択肢ボタンのホバー・アクティブ効果 */
-    .option-item {
-      transition: all 0.2s ease;
-    }
-    .option-item:active:not(:disabled) {
-      background-color: rgba(44, 44, 44, 0.05);
+    /* 選択肢ボタン（ゴールドアウトライン＆シマー） */
+    .option-card {
+      position: relative;
+      overflow: hidden;
+      transition: all 0.4s ease;
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid rgba(212, 175, 55, 0.3);
     }
     
-    /* 選択後の状態 */
-    .option-correct {
-      border-color: #E63946 !important;
-      color: #E63946 !important;
-      background-color: rgba(230, 57, 70, 0.05) !important;
-    }
-    .option-incorrect {
-      opacity: 0.4;
+    .option-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: -150%;
+      width: 50%; height: 100%;
+      background: linear-gradient(to right, transparent, rgba(212, 175, 55, 0.15), transparent);
+      transform: skewX(-25deg);
+      transition: all 0.6s ease;
     }
 
-    /* 縦書き要素（ページ数など装飾用） */
-    .vertical-text {
-      writing-mode: vertical-rl;
-      text-orientation: upright;
+    .option-card:hover::before, .option-card:active::before {
+      left: 150%;
+      transition: all 0.6s ease;
+    }
+
+    .option-card:active {
+      transform: scale(0.98);
+      background: rgba(212, 175, 55, 0.05);
+    }
+
+    /* 正解/不正解時のスタイル */
+    .option-correct {
+      background: rgba(212, 175, 55, 0.15);
+      border-color: #D4AF37;
+      box-shadow: 0 0 15px rgba(212, 175, 55, 0.2);
+    }
+    .option-wrong {
+      background: rgba(255, 255, 255, 0.05);
+      border-color: rgba(255, 255, 255, 0.2);
+      opacity: 0.6;
+    }
+
+    /* コンシェルジュのメッセージエリア */
+    .concierge-quote {
+      border-left: 2px solid #D4AF37;
+      background: linear-gradient(to right, rgba(212, 175, 55, 0.05), transparent);
     }
   </style>
 </head>
-<body class="font-serif min-h-screen flex flex-col items-center">
+<body class="text-offWhite min-h-screen flex flex-col font-sans">
 
-  <!-- 全体を1枚の紙に見立てるラッパー -->
-  <div class="w-full max-w-md min-h-screen flex flex-col relative overflow-hidden">
+  <!-- ヘッダー（ホテルライク） -->
+  <header class="pt-8 pb-4 px-6 text-center z-10">
+    <h1 class="font-serif tracking-widest text-champagne text-xs uppercase mb-1">The Secret Guide</h1>
+    <div class="h-[1px] w-12 bg-champagne mx-auto mb-2 opacity-50"></div>
+    <div id="metaBadge" class="text-xs font-light text-mutedWhite tracking-wider">
+      Loading...
+    </div>
+  </header>
+
+  <!-- メインコンテンツ -->
+  <main class="flex-1 max-w-md w-full mx-auto px-5 pb-8 flex flex-col justify-center">
     
-    <!-- 左端の装飾線（和綴じ本の糸を模した表現） -->
-    <div class="absolute left-3 top-0 bottom-0 w-px bg-usuzumi/50 flex flex-col justify-evenly">
-      <div class="w-2 h-0.5 bg-usuzumi/60 -ml-0.5"></div>
-      <div class="w-2 h-0.5 bg-usuzumi/60 -ml-0.5"></div>
-      <div class="w-2 h-0.5 bg-usuzumi/60 -ml-0.5"></div>
-      <div class="w-2 h-0.5 bg-usuzumi/60 -ml-0.5"></div>
+    <!-- ローディング表示 -->
+    <div id="loadingView" class="text-center font-serif text-champagne animate-pulse">
+      <p class="text-sm tracking-widest">Retrieving the secrets...</p>
     </div>
 
-    <!-- ヘッダー（シンプルに） -->
-    <header class="pt-8 pb-4 px-8 flex justify-between items-end border-b border-usuzumi relative z-10">
-      <div>
-        <h1 class="text-xl font-bold tracking-widest text-sumi">埼玉巡礼</h1>
-        <p class="text-[10px] tracking-widest text-sumi/60 mt-1">SAITAMA DEEP KNOWLEDGE</p>
-      </div>
-      <div class="text-xs tracking-widest text-sumi/80 font-bold border border-sumi/20 px-2 py-1">
-        第 <span id="currentQuestionNum" class="text-base font-serif">1</span> 頁
-      </div>
-    </header>
-
-    <!-- メインコンテンツ -->
-    <main class="flex-1 px-8 py-6 flex flex-col relative z-10" id="mainContent">
+    <!-- クイズエリア -->
+    <div id="quizContainer" class="hidden flex-1 flex-col justify-center">
       
-      <!-- ロード中画面 -->
-      <div id="loadingView" class="flex-1 flex flex-col items-center justify-center space-y-4 opacity-70">
-        <div class="w-8 h-8 border-2 border-sumi/20 border-t-sumi rounded-full animate-spin"></div>
-        <p class="text-xs tracking-widest">書庫を探索中...</p>
-      </div>
-
-      <!-- クイズ画面（初期非表示） -->
-      <div id="quizView" class="hidden flex-col h-full">
+      <!-- 問題カード -->
+      <div class="glass-panel rounded-lg p-6 mb-8 relative fade-in">
+        <!-- アクセントのコーナー装飾 -->
+        <div class="absolute top-0 left-0 w-3 h-3 border-t border-l border-champagne opacity-50 rounded-tl-lg"></div>
+        <div class="absolute bottom-0 right-0 w-3 h-3 border-b border-r border-champagne opacity-50 rounded-br-lg"></div>
         
-        <!-- メタ情報 -->
-        <div class="flex items-center space-x-3 mb-6">
-          <span id="cityBadge" class="text-xs font-bold border border-sumi px-2 py-1 tracking-widest">札所</span>
-          <span id="subThemeBadge" class="text-xs text-sumi/60 tracking-wider">サブテーマ</span>
-          <span id="difficultyBadge" class="ml-auto text-xs text-shu font-bold tracking-widest">難易度</span>
-        </div>
-
-        <!-- 問題文（エディトリアルな文字組み） -->
-        <div class="mb-10 relative">
-          <span class="text-4xl text-usuzumi font-black absolute -top-4 -left-3 -z-10 select-none">問</span>
-          <p id="questionText" class="text-lg leading-loose font-medium text-sumi text-justify break-words tracking-wide"></p>
-        </div>
-
-        <!-- 選択肢リスト（罫線区切り） -->
-        <div id="optionsContainer" class="flex flex-col border-t border-usuzumi">
-          <!-- JSで動的生成 -->
-        </div>
-
-        <!-- 判定スタンプ（絶対配置で画面中央にドーンと出る） -->
-        <div id="stampOverlay" class="hidden fixed inset-0 pointer-events-none z-50 flex items-center justify-center">
-          <!-- 画像を使わずCSSでスタンプを表現 -->
-          <div id="stampElement" class="w-32 h-32 rounded-full border-4 flex items-center justify-center p-2 opacity-90 shadow-sm backdrop-blur-sm">
-            <div class="w-full h-full rounded-full border-2 border-dashed flex items-center justify-center">
-              <span id="stampText" class="text-4xl font-black tracking-tighter"></span>
-            </div>
-          </div>
-        </div>
-
-        <!-- 解説エリア（しおりのように展開） -->
-        <div id="explanationArea" class="hidden mt-8 fade-up">
-          
-          <div class="relative pl-4 border-l-2 border-matcha mb-6">
-            <span class="text-[10px] font-bold tracking-widest text-matcha block mb-1">伝承（公式解説）</span>
-            <p id="explanationText" class="text-sm leading-loose text-sumi/90"></p>
-          </div>
-
-          <div class="relative pl-4 border-l-2 border-shu mb-6 bg-kinari/50">
-            <span class="text-[10px] font-bold tracking-widest text-shu block mb-1">語り草（マウント雑談）</span>
-            <p id="mountPhrase" class="text-sm leading-loose text-sumi/90 font-medium"></p>
-          </div>
-
-          <div class="mt-8 text-center">
-            <span class="text-xs text-sumi/60 tracking-widest block mb-2">巡るべき地</span>
-            <span id="spotName" class="text-base font-bold text-sumi brush-underline tracking-widest"></span>
-          </div>
-
-        </div>
-
+        <p id="questionText" class="font-serif text-lg leading-loose text-offWhite text-center">
+          <!-- 問題文がここに入ります -->
+        </p>
       </div>
-    </main>
 
-    <!-- フッター（次へ進むボタンなど） -->
-    <footer id="footerArea" class="hidden px-8 pb-8 pt-4 bg-gradient-to-t from-kinari via-kinari to-transparent relative z-10">
-      <button id="nextBtn" class="w-full py-4 border border-sumi text-sumi font-bold tracking-widest text-sm hover:bg-sumi hover:text-kinari transition-colors">
-        次の頁へ捲る
+      <!-- 選択肢群 -->
+      <div id="optionsContainer" class="space-y-4 mb-6 fade-in" style="animation-delay: 0.1s;">
+        <!-- ボタンが動的に挿入されます -->
+      </div>
+
+      <!-- 解説エリア（初期非表示） -->
+      <div id="explanationArea" class="hidden fade-in space-y-6">
+        
+        <!-- コンシェルジュのメッセージ（マウントひと言） -->
+        <div class="concierge-quote p-4 rounded-r-lg">
+          <p class="font-serif italic text-champagneLight text-sm leading-relaxed" id="mountPhrase">
+            <!-- マウントひと言 -->
+          </p>
+        </div>
+
+        <!-- 公式解説 -->
+        <div class="text-sm font-light leading-loose text-mutedWhite px-2">
+          <p id="explanationText"></p>
+        </div>
+
+        <!-- 巡礼スポット -->
+        <div class="flex items-center space-x-3 px-2 pt-4 border-t border-white/10">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-champagne" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+          </svg>
+          <span id="spotName" class="text-xs tracking-wider text-champagneLight uppercase"></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 次へボタン -->
+    <div class="mt-8">
+      <button id="nextBtn" class="hidden w-full py-4 bg-transparent border border-champagne text-champagne hover:bg-champagne hover:text-luxuryBg transition-colors duration-300 rounded font-serif tracking-widest text-sm uppercase">
+        Turn the Page
       </button>
-    </footer>
-
-  </div>
+    </div>
+  </main>
 
   <script>
     // ==============================================================
-    // ★ GAS APIのURL
+    // ★ GASのウェブアプリURLをここに貼り付けてください
     // ==============================================================
-    const API_URL = "https://script.google.com/macros/s/AKfycbzgKf5P9EZi9DACFiL9JWqXpFiBE6qDSgA2ATScYz5pALpMIvDYrknPuieU4FMn-0k/exec";
+    const API_URL = "https://script.google.com/macros/s/YOUR_GAS_WEB_APP_URL/exec";
 
     let QUIZ_DATABASE = [];
     let currentIndex = 0;
     let isAnswered = false;
 
-    // DOM
+    // DOM Elements
+    const metaBadge = document.getElementById('metaBadge');
     const loadingView = document.getElementById('loadingView');
-    const quizView = document.getElementById('quizView');
-    const footerArea = document.getElementById('footerArea');
-    
-    const currentQuestionNum = document.getElementById('currentQuestionNum');
-    const cityBadge = document.getElementById('cityBadge');
-    const subThemeBadge = document.getElementById('subThemeBadge');
-    const difficultyBadge = document.getElementById('difficultyBadge');
+    const quizContainer = document.getElementById('quizContainer');
     const questionText = document.getElementById('questionText');
     const optionsContainer = document.getElementById('optionsContainer');
-    
     const explanationArea = document.getElementById('explanationArea');
-    const explanationText = document.getElementById('explanationText');
     const mountPhrase = document.getElementById('mountPhrase');
+    const explanationText = document.getElementById('explanationText');
     const spotName = document.getElementById('spotName');
-    
-    const stampOverlay = document.getElementById('stampOverlay');
-    const stampElement = document.getElementById('stampElement');
-    const stampText = document.getElementById('stampText');
     const nextBtn = document.getElementById('nextBtn');
 
-    // 初期化
+    // 初期化（データ取得）
     async function initQuiz() {
       try {
         const response = await fetch(API_URL);
@@ -249,32 +215,32 @@
         if (data && data.length > 0) {
           QUIZ_DATABASE = shuffleArray(data);
           loadingView.classList.add('hidden');
-          quizView.classList.remove('hidden');
-          quizView.classList.add('flex');
+          quizContainer.classList.remove('hidden');
+          quizContainer.classList.add('flex');
           loadQuestion(0);
         } else {
-          document.querySelector('#loadingView p').textContent = "書庫が空のようです。";
+          loadingView.innerHTML = "<p>The guide is currently empty.</p>";
         }
       } catch (error) {
-        console.error(error);
-        document.querySelector('#loadingView p').textContent = "巻物の取得に失敗しました。";
+        console.error("API Error:", error);
+        loadingView.innerHTML = "<p>Connection failed. Please check the URL.</p>";
       }
     }
 
-    // 問題表示
+    // 問題の読み込み
     function loadQuestion(index) {
       isAnswered = false;
       explanationArea.classList.add('hidden');
-      footerArea.classList.add('hidden');
-      stampOverlay.classList.add('hidden');
+      optionsContainer.classList.remove('hidden');
+      nextBtn.classList.add('hidden');
 
       const data = QUIZ_DATABASE[index];
       
-      currentQuestionNum.textContent = index + 1;
-      cityBadge.textContent = data.city || "埼玉全域";
-      subThemeBadge.textContent = data.subTheme || "";
-      difficultyBadge.textContent = data.difficulty || "";
-      questionText.innerHTML = data.question; // 意図的に改行などがあれば反映
+      // メタデータ（Secret #01 - Chichibu のような形）
+      const cityEn = data.city ? data.city : "Saitama";
+      metaBadge.textContent = `Secret #${String(index + 1).padStart(2, '0')} — ${cityEn}`;
+      
+      questionText.textContent = data.question;
 
       const rawOptions = [
         { text: data.correctAnswer, isCorrect: true },
@@ -285,95 +251,98 @@
       const shuffledOptions = shuffleArray(rawOptions);
 
       optionsContainer.innerHTML = '';
-      shuffledOptions.forEach((opt, i) => {
-        // 和風数を生成 (一, 二, 三, 四)
-        const kanjiNums = ['一', '二', '三', '四'];
-        
+      shuffledOptions.forEach((opt) => {
         const btn = document.createElement('button');
-        btn.className = "option-item w-full py-5 border-b border-usuzumi text-left text-sm font-medium text-sumi/80 flex items-start space-x-4";
+        btn.className = "option-card w-full py-4 px-6 rounded text-left font-serif text-sm tracking-wide text-offWhite flex items-center justify-between";
         btn.innerHTML = `
-          <span class="text-xs font-bold text-sumi/40 pt-0.5 w-4">${kanjiNums[i]}</span>
-          <span class="leading-relaxed flex-1">${opt.text}</span>
+          <span>${opt.text}</span>
+          <span class="w-1.5 h-1.5 rounded-full bg-champagne/30 hidden indicator"></span>
         `;
         btn.onclick = () => selectOption(btn, opt.isCorrect, data);
         optionsContainer.appendChild(btn);
       });
     }
 
-    // 回答選択
+    // 選択肢タップ時の処理
     function selectOption(selectedBtn, isCorrect, data) {
       if (isAnswered) return;
       isAnswered = true;
 
       const buttons = optionsContainer.querySelectorAll('button');
-      buttons.forEach(btn => btn.disabled = true);
-
-      // ハンコアニメーション
-      stampOverlay.classList.remove('hidden');
-      stampElement.classList.remove('stamp-animation'); // リセット
-      
-      // reflow強制
-      void stampElement.offsetWidth;
-      
-      if (isCorrect) {
-        selectedBtn.classList.add('option-correct');
-        stampElement.className = "stamp-animation w-32 h-32 rounded-full border-4 border-[#E63946] flex items-center justify-center p-2 opacity-90 backdrop-blur-sm";
-        stampElement.querySelector('div').className = "w-full h-full rounded-full border border-dashed border-[#E63946] flex items-center justify-center text-[#E63946]";
-        stampText.textContent = "見事";
-      } else {
-        selectedBtn.classList.add('border-sumi', 'bg-sumi/5');
-        buttons.forEach(btn => {
-          if(btn !== selectedBtn) btn.classList.add('option-incorrect');
-        });
+      buttons.forEach(btn => {
+        btn.disabled = true;
+        btn.classList.add('cursor-default');
         
-        stampElement.className = "stamp-animation w-32 h-32 rounded-full border-4 border-[#4A5D23] flex items-center justify-center p-2 opacity-90 backdrop-blur-sm";
-        stampElement.querySelector('div').className = "w-full h-full rounded-full border border-dashed border-[#4A5D23] flex items-center justify-center text-[#4A5D23]";
-        stampText.textContent = "残念";
-      }
+        // 選ばれたボタンかつ正解
+        if (btn === selectedBtn && isCorrect) {
+          btn.classList.add('option-correct');
+          btn.querySelector('.indicator').classList.remove('hidden', 'bg-champagne/30');
+          btn.querySelector('.indicator').classList.add('bg-champagne');
+        } 
+        // 選ばれたボタンだが不正解
+        else if (btn === selectedBtn && !isCorrect) {
+          btn.classList.add('border-red-900/50', 'bg-red-950/20', 'text-red-200/70');
+        }
+        // 選ばれていないボタン
+        else {
+          btn.classList.add('option-wrong');
+        }
+      });
 
-      // 解説表示
-      explanationText.textContent = data.explanation;
-      mountPhrase.textContent = data.mountPhrase;
-      spotName.textContent = data.spot || "なし";
-
-      // 少し遅れて解説を展開
+      // スムーズな遷移のため、少し待ってから解説を表示
       setTimeout(() => {
-        explanationArea.classList.remove('hidden');
-        footerArea.classList.remove('hidden');
+        optionsContainer.classList.add('hidden'); // 選択肢を消して解説に集中させるエディトリアル仕様
         
-        // スクロールダウン
-        setTimeout(() => {
-          window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
-        }, 100);
-      }, 500);
+        mountPhrase.innerHTML = `&ldquo; ${data.mountPhrase} &rdquo;`;
+        explanationText.textContent = data.explanation;
+        spotName.textContent = data.spot || "Secret Location";
+
+        explanationArea.classList.remove('hidden');
+        nextBtn.classList.remove('hidden');
+      }, 600); // フリップを待つ間のタメ
     }
 
     // 次へボタン
     nextBtn.onclick = () => {
       currentIndex++;
       if (currentIndex < QUIZ_DATABASE.length) {
+        // フェードアウト効果
+        quizContainer.classList.remove('fade-in');
+        void quizContainer.offsetWidth; // リフロー強制
+        quizContainer.classList.add('fade-in');
+        
         loadQuestion(currentIndex);
-        window.scrollTo({ top: 0, behavior: 'instant' });
+        window.scrollTo({ top: 0, behavior: 'smooth' });
       } else {
         showFinalResult();
       }
     };
 
+    // 最終画面
     function showFinalResult() {
-      quizView.innerHTML = `
-        <div class="flex-1 flex flex-col items-center justify-center text-center fade-up mt-12">
-          <div class="w-16 h-16 border border-shu text-shu rounded-full flex items-center justify-center mb-6">
-            <span class="text-2xl font-black">了</span>
+      metaBadge.textContent = "Epilogue";
+      
+      quizContainer.innerHTML = `
+        <div class="glass-panel rounded-lg p-8 text-center space-y-6 fade-in my-auto">
+          <div class="w-12 h-12 mx-auto border border-champagne rounded-full flex items-center justify-center">
+            <span class="text-champagne font-serif italic text-xl">S</span>
           </div>
-          <h2 class="text-xl font-bold tracking-widest mb-8">全行程 巡礼完了</h2>
-          <button onclick="location.reload()" class="border border-sumi px-8 py-3 text-sm tracking-widest hover:bg-sumi hover:text-kinari transition-colors">
-            最初から巡る
-          </button>
+          <h2 class="font-serif tracking-widest text-champagne text-lg uppercase">Journey Completed</h2>
+          <p class="font-light text-mutedWhite text-sm leading-relaxed">
+            埼玉県に隠された数々の秘密。<br>
+            その真価を知る者だけが、<br>真のラグジュアリーな体験を手にする。
+          </p>
+          <div class="pt-6">
+            <button onclick="location.reload()" class="w-full py-4 bg-transparent border border-champagne text-champagne hover:bg-champagne hover:text-luxuryBg transition-colors duration-300 rounded font-serif tracking-widest text-sm uppercase">
+              Start New Journey
+            </button>
+          </div>
         </div>
       `;
-      footerArea.classList.add('hidden');
+      nextBtn.classList.add('hidden');
     }
 
+    // 配列シャッフル
     function shuffleArray(array) {
       const arr = [...array];
       for (let i = arr.length - 1; i > 0; i--) {
@@ -383,7 +352,7 @@
       return arr;
     }
 
-    // アプリ起動
+    // 起動
     initQuiz();
   </script>
 </body>
