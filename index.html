@@ -83,8 +83,9 @@
       <button id="backBtn" class="hidden text-stone-500 hover:text-ink transition-colors p-1" onclick="goBack()" aria-label="前の問題に戻る">
         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
       </button>
-      <div class="font-serif tracking-widest text-lg font-bold text-accent">
-        SAITAMANIA
+      <div class="font-serif tracking-widest text-lg font-bold text-accent flex items-center space-x-2">
+        <span>SAITAMANIA</span>
+        <span id="modeTag" class="text-[10px] bg-stone-200 text-stone-600 px-2 py-0.5 rounded font-sans font-normal tracking-normal"></span>
       </div>
     </div>
     <div class="text-xs font-medium text-subtle tracking-widest border border-stone-200 rounded-full px-3 py-1 bg-white/50">
@@ -97,7 +98,7 @@
     <!-- ★ 開始画面（Start Screen） -->
     <div id="startScreen" class="flex-1 flex flex-col justify-center items-center text-center fade-up w-full">
       <p class="text-accent font-serif tracking-widest text-sm mb-3">埼玉完全攻略</p>
-      <h1 class="text-4xl md:text-5xl font-serif font-bold text-ink tracking-widest mb-12 leading-tight">
+      <h1 class="text-4xl md:text-5xl font-serif font-bold text-ink tracking-widest mb-10 leading-tight">
         SAITAMANIA<br>
         <span class="text-xl md:text-2xl mt-4 block text-subtle font-medium">埼玉探求の書</span>
       </h1>
@@ -108,15 +109,33 @@
       </div>
 
       <!-- メニュー表示（データ取得後に表示） -->
-      <div id="startMenu" class="hidden w-full max-w-xs space-y-8 fade-up">
-        <div>
-          <p class="text-xs font-bold text-stone-400 tracking-widest uppercase mb-4">出題数を選択</p>
-          <div class="grid grid-cols-2 gap-3" id="questionCountSelectors">
+      <div id="startMenu" class="hidden w-full max-w-xs space-y-6 fade-up">
+        
+        <!-- モード選択タブ -->
+        <div class="bg-stone-200/70 p-1 rounded-xl flex items-center space-x-1 text-xs font-serif font-bold">
+          <button id="modeAllBtn" onclick="switchMode('all')" class="flex-1 py-2.5 rounded-lg transition-all bg-white text-ink shadow-soft">
+            通常探求
+          </button>
+          <button id="modeReviewBtn" onclick="switchMode('review')" class="flex-1 py-2.5 rounded-lg transition-all text-subtle hover:text-ink relative">
+            復習探求
+            <span id="wrongBadge" class="hidden ml-1 px-1.5 py-0.2 bg-accent text-white text-[10px] rounded-full">0</span>
+          </button>
+        </div>
+
+        <!-- 出題数セレクター（復習モード時は件数に応じて自動調整） -->
+        <div id="countSelectorSection">
+          <p class="text-xs font-bold text-stone-400 tracking-widest uppercase mb-3">出題数を選択</p>
+          <div class="grid grid-cols-2 gap-2.5" id="questionCountSelectors">
             <!-- JSでボタンを動的生成 -->
           </div>
         </div>
         
-        <button onclick="startQuiz()" class="w-full py-4 bg-ink text-paper hover:bg-stone-800 transition-colors rounded-xl font-serif tracking-widest shadow-float flex items-center justify-center space-x-2">
+        <!-- 復習モードで間違えた問題が0件の時のメッセージ -->
+        <div id="noWrongNotice" class="hidden p-4 bg-emerald-50 border border-emerald-100 rounded-xl text-xs text-emerald-800 font-serif">
+          ✧ 現在、克服すべき苦手な問題はありません。素晴らしい見識です！
+        </div>
+
+        <button id="startActionBtn" onclick="startQuiz()" class="w-full py-4 bg-ink text-paper hover:bg-stone-800 transition-colors rounded-xl font-serif tracking-widest shadow-float flex items-center justify-center space-x-2">
           <span>探求を始める</span>
           <span class="text-xl">→</span>
         </button>
@@ -183,9 +202,11 @@
     // ==============================================================
     const API_URL = "https://script.google.com/macros/s/AKfycbzgKf5P9EZi9DACFiL9JWqXpFiBE6qDSgA2ATScYz5pALpMIvDYrknPuieU4FMn-0k/exec";
 
-    let ALL_QUIZ_DATA = []; // スプレッドシートの全データ
-    let QUIZ_DATABASE = []; // 実際にプレイするデータ（絞り込み後）
-    let selectedCount = 10; // デフォルトの選択問題数
+    let ALL_QUIZ_DATA = []; 
+    let WRONG_QUIZ_IDS = []; // ローカルストレージから取得する間違えた問題ID
+    let currentMode = 'all'; // 'all' (通常) または 'review' (復習)
+    let QUIZ_DATABASE = []; 
+    let selectedCount = 10; 
     
     let currentIndex = 0;
     let scoreHistory = []; 
@@ -196,7 +217,14 @@
     const startScreen = document.getElementById('startScreen');
     const loadingIndicator = document.getElementById('loadingIndicator');
     const startMenu = document.getElementById('startMenu');
+    const modeAllBtn = document.getElementById('modeAllBtn');
+    const modeReviewBtn = document.getElementById('modeReviewBtn');
+    const wrongBadge = document.getElementById('wrongBadge');
+    const countSelectorSection = document.getElementById('countSelectorSection');
+    const noWrongNotice = document.getElementById('noWrongNotice');
+    const startActionBtn = document.getElementById('startActionBtn');
     const mainHeader = document.getElementById('mainHeader');
+    const modeTag = document.getElementById('modeTag');
     const quizScreen = document.getElementById('quizScreen');
 
     const backBtn = document.getElementById('backBtn');
@@ -216,9 +244,55 @@
     const totalCountElem = document.getElementById('totalCount');
 
     // ==========================================
-    // 1. 初期化と開始画面ロジック
+    // 1. ローカルストレージ（間違えた問題の永続化）
+    // ==========================================
+    const STORAGE_KEY = 'saitamania_wrong_quizzes';
+
+    function loadWrongQuizIds() {
+      try {
+        const data = localStorage.getItem(STORAGE_KEY);
+        WRONG_QUIZ_IDS = data ? JSON.parse(data) : [];
+      } catch (e) {
+        WRONG_QUIZ_IDS = [];
+      }
+      updateWrongBadge();
+    }
+
+    function addWrongQuizId(id) {
+      if (!id) return;
+      if (!WRONG_QUIZ_IDS.includes(id)) {
+        WRONG_QUIZ_IDS.push(id);
+        saveWrongQuizIds();
+      }
+    }
+
+    function removeWrongQuizId(id) {
+      if (!id) return;
+      WRONG_QUIZ_IDS = WRONG_QUIZ_IDS.filter(item => item !== id);
+      saveWrongQuizIds();
+    }
+
+    function saveWrongQuizIds() {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(WRONG_QUIZ_IDS));
+      } catch (e) {}
+      updateWrongBadge();
+    }
+
+    function updateWrongBadge() {
+      if (WRONG_QUIZ_IDS.length > 0) {
+        wrongBadge.textContent = WRONG_QUIZ_IDS.length;
+        wrongBadge.classList.remove('hidden');
+      } else {
+        wrongBadge.classList.add('hidden');
+      }
+    }
+
+    // ==========================================
+    // 2. 初期化とメニュー制御
     // ==========================================
     async function initApp() {
+      loadWrongQuizIds();
       try {
         const response = await fetch(API_URL);
         const data = await response.json();
@@ -237,43 +311,81 @@
       }
     }
 
+    window.switchMode = function(mode) {
+      currentMode = mode;
+      if (mode === 'all') {
+        modeAllBtn.className = "flex-1 py-2.5 rounded-lg transition-all bg-white text-ink shadow-soft";
+        modeReviewBtn.className = "flex-1 py-2.5 rounded-lg transition-all text-subtle hover:text-ink relative";
+        countSelectorSection.classList.remove('hidden');
+        noWrongNotice.classList.add('hidden');
+        startActionBtn.disabled = false;
+        startActionBtn.classList.remove('opacity-40', 'cursor-not-allowed');
+        renderCountSelectors();
+      } else {
+        modeReviewBtn.className = "flex-1 py-2.5 rounded-lg transition-all bg-white text-accent font-bold shadow-soft relative";
+        modeAllBtn.className = "flex-1 py-2.5 rounded-lg transition-all text-subtle hover:text-ink";
+        
+        // 復習対象のデータ数を計算
+        const reviewData = ALL_QUIZ_DATA.filter(q => WRONG_QUIZ_IDS.includes(q.quizId));
+        if (reviewData.length === 0) {
+          countSelectorSection.classList.add('hidden');
+          noWrongNotice.classList.remove('hidden');
+          startActionBtn.disabled = true;
+          startActionBtn.classList.add('opacity-40', 'cursor-not-allowed');
+        } else {
+          countSelectorSection.classList.remove('hidden');
+          noWrongNotice.classList.add('hidden');
+          startActionBtn.disabled = false;
+          startActionBtn.classList.remove('opacity-40', 'cursor-not-allowed');
+          renderCountSelectors();
+        }
+      }
+    }
+
     function renderCountSelectors() {
       const container = document.getElementById('questionCountSelectors');
-      const maxCount = ALL_QUIZ_DATA.length;
+      const targetPool = currentMode === 'all' 
+        ? ALL_QUIZ_DATA 
+        : ALL_QUIZ_DATA.filter(q => WRONG_QUIZ_IDS.includes(q.quizId));
       
-      // 用意する選択肢の基準（最大数を超えないものだけフィルタリング）
+      const maxCount = targetPool.length;
+      if (maxCount === 0) return;
+
       const baseOptions = [5, 10, 20];
       let validOptions = baseOptions.filter(num => num < maxCount);
-      validOptions.push(maxCount); // 最後に「すべて」を追加
+      validOptions.push(maxCount);
 
-      // 10問があれば10問を、なければ一番小さい数を選択状態にする
       selectedCount = validOptions.includes(10) ? 10 : validOptions[0];
 
       container.innerHTML = validOptions.map(opt => `
-        <button onclick="selectCount(${opt})" id="countBtn-${opt}" class="count-btn py-3 border border-stone-200 rounded-xl font-serif text-sm text-stone-500 bg-white transition-all ${opt === selectedCount ? 'ring-2 ring-accent border-accent text-accent font-bold bg-accentLight/30' : ''}">
+        <button onclick="selectCount(${opt})" id="countBtn-${opt}" class="count-btn py-3 border border-stone-200 rounded-xl font-serif text-xs text-stone-500 bg-white transition-all ${opt === selectedCount ? 'ring-2 ring-accent border-accent text-accent font-bold bg-accentLight/30' : ''}">
           ${opt === maxCount ? 'すべて (' + maxCount + ')' : opt + ' 問'}
         </button>
       `).join('');
     }
 
-    // グローバルに公開（HTML側からのonclick用）
     window.selectCount = function(count) {
       selectedCount = count;
       document.querySelectorAll('.count-btn').forEach(btn => {
-        btn.className = "count-btn py-3 border border-stone-200 rounded-xl font-serif text-sm text-stone-500 bg-white transition-all";
+        btn.className = "count-btn py-3 border border-stone-200 rounded-xl font-serif text-xs text-stone-500 bg-white transition-all";
       });
       const selectedBtn = document.getElementById(`countBtn-${count}`);
-      selectedBtn.classList.add('ring-2', 'ring-accent', 'border-accent', 'text-accent', 'font-bold', 'bg-accentLight/30');
+      if (selectedBtn) {
+        selectedBtn.classList.add('ring-2', 'ring-accent', 'border-accent', 'text-accent', 'font-bold', 'bg-accentLight/30');
+      }
     }
 
-    // 探求を始めるボタン
     window.startQuiz = function() {
-      // データをシャッフルして、選択された件数だけ抽出
-      QUIZ_DATABASE = shuffleArray(ALL_QUIZ_DATA).slice(0, selectedCount);
+      const pool = currentMode === 'all' 
+        ? ALL_QUIZ_DATA 
+        : ALL_QUIZ_DATA.filter(q => WRONG_QUIZ_IDS.includes(q.quizId));
+
+      QUIZ_DATABASE = shuffleArray(pool).slice(0, selectedCount);
       totalCountElem.textContent = QUIZ_DATABASE.length;
       scoreHistory = new Array(QUIZ_DATABASE.length).fill(null);
       
-      // 画面の切り替え
+      modeTag.textContent = currentMode === 'all' ? '通常探求' : '復習探求';
+
       startScreen.classList.add('hidden');
       mainHeader.classList.remove('hidden');
       quizScreen.classList.remove('hidden');
@@ -283,7 +395,7 @@
     }
 
     // ==========================================
-    // 2. クイズ進行ロジック
+    // 3. クイズ出題・正誤判定ロジック
     // ==========================================
     function updateScoreDisplay() {
       const correctScore = scoreHistory.filter(val => val === true).length;
@@ -305,7 +417,6 @@
       void metaTags.offsetWidth; 
       metaTags.classList.add('fade-up');
       
-      // 問題文にもアニメーション適用
       questionText.classList.remove('fade-up-delay-1', 'fade-up');
       void questionText.offsetWidth; 
       questionText.classList.add('fade-up', 'fade-up-delay-1');
@@ -345,6 +456,13 @@
 
       scoreHistory[currentIndex] = isCorrect;
       updateScoreDisplay();
+
+      // 間違えた問題リストの更新
+      if (isCorrect) {
+        removeWrongQuizId(data.quizId); // 正解したら克服リストから除外
+      } else {
+        addWrongQuizId(data.quizId);    // 不正解なら苦手リストに追加
+      }
 
       const buttons = optionsContainer.querySelectorAll('button');
       buttons.forEach(btn => {
@@ -445,7 +563,6 @@
       return arr;
     }
 
-    // アプリケーション起動
     initApp();
   </script>
 </body>
