@@ -3,204 +3,149 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>SAITAMANIA | 埼玉探求の書</title>
+  <title>SAITAMANIA - Audio Guide</title>
+  <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Google Fonts: Noto Serif JP (明朝体) と Noto Sans JP (ゴシック体) -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=Noto+Serif+JP:wght@400;600;900&display=swap" rel="stylesheet">
-  
-  <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          fontFamily: {
-            serif: ['"Noto Serif JP"', 'serif'],
-            sans: ['"Noto Sans JP"', 'sans-serif'],
-          },
-          colors: {
-            // エディトリアル風のカラースキーム
-            paper: '#FAFAF9', // 温かみのあるアイボリー（背景）
-            ink: '#1C1917',   // 墨黒（メインテキスト）
-            subtle: '#78716C', // 落ち着いたグレー（サブテキスト）
-            accent: '#831843', // えんじ色（和のアクセント）
-            accentLight: '#FCE7F3',
-            correct: '#065F46', // 深緑（正解）
-            incorrect: '#991B1B' // 深紅（不正解）
-          },
-          boxShadow: {
-            'soft': '0 4px 20px -2px rgba(0, 0, 0, 0.05)',
-            'float': '0 10px 30px -5px rgba(0, 0, 0, 0.08)',
-          }
-        }
-      }
-    }
-  </script>
+  <!-- Google Fonts: 游明朝などの明朝体に近い美しいセリフ体ベース -->
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@300;400;600&display=swap" rel="stylesheet">
   <style>
     body {
-      background-color: #FAFAF9; /* paper */
       -webkit-tap-highlight-color: transparent;
-      background-image: radial-gradient(#E7E5E4 1px, transparent 1px);
-      background-size: 24px 24px;
+      user-select: none;
+      /* 背景：ストーン・グレー / テキスト：チャコールグレー / フォント：明朝体ベース */
+      background-color: #F3F4F6;
+      color: #374151;
+      font-family: 'Noto Serif JP', 'Yu Mincho', 'YuMincho', serif;
     }
     
-    /* エレガントなフェード＆スライドイン */
-    .fade-up {
-      animation: fadeUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-      opacity: 0;
-      transform: translateY(16px);
+    /* 非常にゆっくりとしたクロスフェード・アニメーション */
+    .fade-in {
+      animation: fadeIn 1.2s cubic-bezier(0.4, 0, 0.2, 1) forwards;
     }
-    
-    .fade-up-delay-1 { animation-delay: 0.1s; }
-    .fade-up-delay-2 { animation-delay: 0.2s; }
-    
-    @keyframes fadeUp {
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(4px); }
       to { opacity: 1; transform: translateY(0); }
     }
 
-    /* 雑誌のコラム風 引用符装飾 */
-    .editorial-quote::before {
-      content: '“';
-      position: absolute;
-      top: -10px;
-      left: -5px;
-      font-size: 4rem;
-      color: rgba(131, 24, 67, 0.1); /* accent色の透過 */
-      font-family: serif;
-      line-height: 1;
+    /* 選択肢ホバー/アクティブ時のうっすらとしたハイライト */
+    .option-item {
+      transition: background-color 0.4s ease, opacity 0.4s ease;
+    }
+    .option-item:active {
+      background-color: rgba(55, 65, 81, 0.05); /* チャコールグレーの極薄い透過 */
     }
 
-    /* Glassmorphism風のヘッダー */
-    .glass-header {
-      background: rgba(250, 250, 249, 0.85);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-    }
-    
-    /* 選択肢ボタンの押し込みエフェクト */
-    .option-card {
-      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-    }
-    .option-card:active:not(:disabled) {
-      transform: scale(0.98);
-      box-shadow: 0 2px 8px -2px rgba(0,0,0,0.05);
+    /* 解説エリアの展示プレート風ディバイダー */
+    .museum-divider {
+      border-top: 1px solid rgba(55, 65, 81, 0.2);
+      margin: 2rem 0;
     }
   </style>
 </head>
-<body class="text-ink font-sans min-h-screen flex flex-col selection:bg-accentLight selection:text-accent">
+<body class="min-h-screen flex flex-col items-center justify-center p-6 sm:p-12">
 
-  <!-- ヘッダー (Glassmorphism) -->
-  <header class="glass-header border-b border-stone-200 px-6 py-4 sticky top-0 z-50 flex items-center justify-between">
-    <div class="font-serif tracking-widest text-lg font-bold text-accent">
-      SAITAMANIA
-    </div>
-    <div class="text-xs font-medium text-subtle tracking-widest border border-stone-200 rounded-full px-3 py-1 bg-white/50">
-      <span id="correctCount" class="text-ink font-bold">0</span> / <span id="totalCount">0</span>
-    </div>
-  </header>
-
-  <!-- メインコンテンツ -->
-  <main class="flex-1 max-w-lg w-full mx-auto p-6 pb-24 flex flex-col">
+  <!-- メインキャンバス（余白をたっぷりとる） -->
+  <main class="w-full max-w-lg mx-auto flex flex-col justify-center min-h-[80vh]">
     
-    <div id="quizContainer" class="flex-1 flex flex-col justify-center">
-      
-      <!-- メタ情報 -->
-      <div id="metaTags" class="flex items-center space-x-3 mb-6 fade-up">
-        <span id="cityBadge" class="text-xs font-serif font-bold tracking-widest text-accent border-b border-accent pb-0.5"></span>
-        <span class="text-stone-300">|</span>
-        <span id="subThemeBadge" class="text-xs text-subtle tracking-wide"></span>
-      </div>
+    <!-- ローディング表示 -->
+    <div id="loadingArea" class="text-center fade-in">
+      <p class="text-sm tracking-widest uppercase opacity-60">Connecting to Audio Guide...</p>
+    </div>
 
-      <!-- 問題文 -->
-      <div class="mb-10 fade-up fade-up-delay-1">
-        <h1 id="questionText" class="font-serif text-2xl md:text-3xl font-semibold leading-relaxed tracking-wide">
-          <span class="animate-pulse text-stone-400 text-lg">探求の書を開いています...</span>
+    <!-- クイズエリア（初期は非表示） -->
+    <div id="quizContainer" class="hidden w-full">
+      
+      <!-- オーディオガイド風ヘッダー（メタデータ） -->
+      <header class="mb-12 flex justify-between items-baseline border-b border-gray-300 pb-2">
+        <div class="text-xs tracking-widest uppercase opacity-70">
+          Track <span id="trackNumber">01</span>: <span id="trackTitle">Loading</span>
+        </div>
+        <div class="text-[10px] tracking-widest opacity-50 uppercase">
+          <span id="cityLabel">City</span> / <span id="difficultyLabel">Level</span>
+        </div>
+      </header>
+
+      <!-- 問題文（作品キャプション風） -->
+      <div class="mb-12 fade-in">
+        <h1 id="questionText" class="text-xl sm:text-2xl leading-loose tracking-wide font-light">
+          <!-- 問題文がここに入ります -->
         </h1>
       </div>
 
-      <!-- 選択肢エリア -->
-      <div id="optionsContainer" class="space-y-4 fade-up fade-up-delay-2">
-        <!-- JSで動的生成 -->
+      <!-- 選択肢（枠線なし、余白を持たせたリスト） -->
+      <div id="optionsContainer" class="space-y-6 fade-in">
+        <!-- JSで動的にリストが挿入されます -->
       </div>
 
-      <!-- 解説エリア（雑誌コラム風） -->
-      <div id="explanationArea" class="hidden mt-10 space-y-8">
-        
-        <!-- 判定テキスト -->
-        <div class="text-center border-b border-stone-200 pb-4">
-          <span id="resultIcon" class="text-2xl mr-2"></span>
-          <span id="resultText" class="font-serif font-bold text-lg tracking-wide"></span>
-        </div>
+      <!-- 解説エリア（展示プレート風、初期は非表示） -->
+      <div id="explanationArea" class="hidden fade-in mt-12">
+        <!-- 判定結果を静かに表示 -->
+        <div id="resultText" class="text-sm tracking-widest uppercase font-semibold mb-8"></div>
 
-        <!-- マウントフレーズ（引用コラム風） -->
-        <div class="relative editorial-quote pl-6 pr-2">
-          <p class="text-xs font-bold text-accent tracking-widest mb-2 uppercase">Dialogue / 語り口</p>
-          <p id="mountPhrase" class="font-serif text-lg leading-relaxed text-ink"></p>
-        </div>
+        <!-- ディバイダー -->
+        <div class="museum-divider"></div>
 
-        <!-- 公式解説 -->
-        <div class="bg-white p-6 rounded-2xl shadow-soft border border-stone-100">
-          <p class="text-xs font-bold text-subtle tracking-widest mb-3 uppercase">Fact / 史実と背景</p>
-          <p id="explanationText" class="text-sm leading-relaxed text-stone-700"></p>
-        </div>
-
-        <!-- 巡礼スポット（最も目立たせる） -->
-        <div class="bg-stone-800 text-paper rounded-2xl p-6 shadow-float relative overflow-hidden group">
-          <!-- 背景の和風アクセント -->
-          <div class="absolute -right-4 -top-4 w-24 h-24 bg-accent/20 rounded-full blur-2xl"></div>
+        <!-- 解説本文 -->
+        <div class="space-y-8">
+          <div>
+            <h2 class="text-xs tracking-widest uppercase opacity-60 mb-3">Interpretation</h2>
+            <p id="explanationText" class="text-sm leading-loose tracking-wide"></p>
+          </div>
           
-          <p class="text-xs font-bold text-stone-400 tracking-widest mb-2 uppercase relative z-10">Destination / 巡礼地</p>
-          <h3 id="spotName" class="font-serif text-xl font-bold mb-4 relative z-10 leading-snug"></h3>
-          
-          <!-- アクション導線風ボタン -->
-          <button onclick="searchSpot()" class="relative z-10 w-full py-3 bg-paper text-ink hover:bg-stone-200 transition-colors rounded-xl text-sm font-bold tracking-wide flex items-center justify-center space-x-2">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
-            <span>地図で場所を確認する</span>
-          </button>
+          <div>
+            <h2 class="text-xs tracking-widest uppercase opacity-60 mb-3">Conversation Piece</h2>
+            <p id="mountPhrase" class="text-sm leading-loose tracking-wide italic"></p>
+          </div>
+
+          <div>
+            <h2 class="text-xs tracking-widest uppercase opacity-60 mb-3">Access to the Exhibit</h2>
+            <p id="spotName" class="text-sm tracking-wide"></p>
+          </div>
         </div>
-        
       </div>
+      
     </div>
-  </main>
 
-  <!-- フッター固定 次へボタン -->
-  <div id="footerAction" class="hidden fixed bottom-0 left-0 w-full p-6 bg-gradient-to-t from-paper via-paper to-transparent z-40">
-    <button id="nextBtn" class="max-w-lg mx-auto w-full py-4 bg-accent hover:bg-accent/90 text-white shadow-float rounded-xl font-serif tracking-widest transition-transform active:scale-95 flex items-center justify-center space-x-2">
-      <span>次の探求へ</span>
-      <span class="text-xl">→</span>
-    </button>
-  </div>
+    <!-- 画面下部のアクションエリア -->
+    <div class="mt-16 text-center">
+      <button id="nextBtn" class="hidden fade-in text-xs tracking-widest uppercase opacity-60 hover:opacity-100 transition-opacity p-4">
+        Next Track 
+        <span class="ml-2">→</span>
+      </button>
+    </div>
+
+  </main>
 
   <script>
     // ==============================================================
-    // ★ GASのウェブアプリURLをここに貼り付けてください
+    // ★ GASのウェブアプリURLをここに貼り付けます
     // ==============================================================
     const API_URL = "https://script.google.com/macros/s/AKfycbzgKf5P9EZi9DACFiL9JWqXpFiBE6qDSgA2ATScYz5pALpMIvDYrknPuieU4FMn-0k/exec";
 
     let QUIZ_DATABASE = [];
     let currentIndex = 0;
-    let correctScore = 0;
     let isAnswered = false;
-    let currentSpotName = ""; // Google Maps検索用
 
     // DOM Elements
-    const cityBadge = document.getElementById('cityBadge');
-    const subThemeBadge = document.getElementById('subThemeBadge');
+    const loadingArea = document.getElementById('loadingArea');
+    const quizContainer = document.getElementById('quizContainer');
+    
+    const trackNumber = document.getElementById('trackNumber');
+    const trackTitle = document.getElementById('trackTitle');
+    const cityLabel = document.getElementById('cityLabel');
+    const difficultyLabel = document.getElementById('difficultyLabel');
     const questionText = document.getElementById('questionText');
     const optionsContainer = document.getElementById('optionsContainer');
+    
     const explanationArea = document.getElementById('explanationArea');
-    const resultIcon = document.getElementById('resultIcon');
     const resultText = document.getElementById('resultText');
+    const explanationBody = document.getElementById('explanationText');
     const mountPhrase = document.getElementById('mountPhrase');
-    const explanationText = document.getElementById('explanationText');
     const spotName = document.getElementById('spotName');
-    const footerAction = document.getElementById('footerAction');
+    
     const nextBtn = document.getElementById('nextBtn');
-    const correctCountElem = document.getElementById('correctCount');
-    const totalCountElem = document.getElementById('totalCount');
-    const quizContainer = document.getElementById('quizContainer');
 
-    // 初期化：APIからデータ取得
+    // 初期化（APIからデータ取得）
     async function initQuiz() {
       try {
         const response = await fetch(API_URL);
@@ -208,121 +153,121 @@
         
         if (data && data.length > 0) {
           QUIZ_DATABASE = shuffleArray(data);
-          totalCountElem.textContent = QUIZ_DATABASE.length;
-          loadQuestion(0);
+          loadingArea.classList.add('hidden');
+          quizContainer.classList.remove('hidden');
+          
+          // CSSアニメーションをトリガーするために少し遅延させる
+          setTimeout(() => {
+            loadQuestion(0);
+          }, 100);
         } else {
-          questionText.textContent = "記録が見つかりません。データベースを確認してください。";
+          loadingArea.innerHTML = '<p class="text-sm tracking-widest opacity-60">No exhibits found.</p>';
         }
       } catch (error) {
-        console.error("API Error:", error);
-        questionText.textContent = "通信の乱れにより、探求の書を開けませんでした。";
+        console.error(error);
+        loadingArea.innerHTML = '<p class="text-sm tracking-widest opacity-60">Connection failed.</p>';
       }
     }
 
-    // 問題表示
+    // トラック（問題）の読み込み
     function loadQuestion(index) {
       isAnswered = false;
       explanationArea.classList.add('hidden');
-      footerAction.classList.add('hidden');
-      
-      // 再生用のアニメーションクラスを一度外して付け直す
-      const metaTags = document.getElementById('metaTags');
-      metaTags.classList.remove('fade-up');
-      void metaTags.offsetWidth; // reflow
-      metaTags.classList.add('fade-up');
+      nextBtn.classList.add('hidden');
 
       const data = QUIZ_DATABASE[index];
       
-      cityBadge.textContent = data.city || "埼玉全域";
-      subThemeBadge.textContent = data.subTheme || "未分類";
-      questionText.innerHTML = `Q${index + 1}.<br>${data.question}`;
+      // メタデータの設定
+      trackNumber.textContent = String(index + 1).padStart(2, '0');
+      trackTitle.textContent = data.subTheme || "Saitama Exhibition";
+      cityLabel.textContent = data.city || "Saitama";
+      
+      // 難易度を英語のメタファに変換
+      let diffLabel = "Level 1";
+      if(data.difficulty === "中級") diffLabel = "Level 2";
+      if(data.difficulty === "上級") diffLabel = "Level 3";
+      if(data.difficulty === "埼玉神") diffLabel = "Masterpiece";
+      difficultyLabel.textContent = diffLabel;
 
+      // 問題文
+      questionText.textContent = data.question;
+
+      // 選択肢のシャッフル
       const rawOptions = [
         { text: data.correctAnswer, isCorrect: true },
         { text: data.dummyOption1, isCorrect: false },
         { text: data.dummyOption2, isCorrect: false },
         { text: data.dummyOption3, isCorrect: false }
-      ].filter(opt => opt.text); // 空のダミーを排除
-
+      ];
       const shuffledOptions = shuffleArray(rawOptions);
 
+      // 選択肢レンダリング（ボタンではなく、美しいテキストリスト）
       optionsContainer.innerHTML = '';
       shuffledOptions.forEach((opt, i) => {
-        const btn = document.createElement('button');
-        // 白背景、柔らかい影のカードスタイル
-        btn.className = "option-card w-full p-5 bg-white border border-stone-100 shadow-soft rounded-2xl text-left font-medium text-stone-700 flex items-center space-x-4";
-        btn.innerHTML = `
-          <span class="w-8 h-8 rounded-full border border-stone-200 flex items-center justify-center text-xs font-serif text-stone-400 shrink-0 bg-stone-50">${String.fromCharCode(65 + i)}</span>
-          <span class="leading-relaxed">${opt.text}</span>
+        const optionDiv = document.createElement('div');
+        optionDiv.className = "option-item cursor-pointer py-3 px-4 -mx-4 rounded-lg flex items-start opacity-80 hover:opacity-100";
+        optionDiv.innerHTML = `
+          <span class="text-xs opacity-50 mr-6 mt-1 font-sans">${String(i + 1).padStart(2, '0')}.</span>
+          <span class="text-base leading-relaxed">${opt.text}</span>
         `;
-        btn.onclick = () => selectOption(btn, opt.isCorrect, data);
-        optionsContainer.appendChild(btn);
+        
+        optionDiv.onclick = () => selectOption(optionDiv, opt.isCorrect, data);
+        optionsContainer.appendChild(optionDiv);
       });
+
+      // アニメーションのリセット
+      void questionText.offsetWidth; 
     }
 
-    // 選択肢タップ時
-    function selectOption(selectedBtn, isCorrect, data) {
+    // 回答選択時
+    function selectOption(selectedDiv, isCorrect, data) {
       if (isAnswered) return;
       isAnswered = true;
 
-      const buttons = optionsContainer.querySelectorAll('button');
-      buttons.forEach(btn => {
-        btn.disabled = true;
-        btn.classList.add('opacity-50');
+      const allOptions = optionsContainer.querySelectorAll('.option-item');
+      allOptions.forEach(div => {
+        div.style.pointerEvents = 'none'; // タップ無効化
+        if (div !== selectedDiv) {
+          div.style.opacity = '0.2'; // 選ばれなかった選択肢をフェードアウト
+        }
       });
 
-      selectedBtn.classList.remove('opacity-50', 'bg-white', 'border-stone-100');
-      
-      const badge = selectedBtn.querySelector('span');
+      // 選択した項目のハイライト
+      selectedDiv.style.opacity = '1';
+      selectedDiv.style.fontWeight = '600';
 
+      // 判定結果の静かな表示
       if (isCorrect) {
-        correctScore++;
-        correctCountElem.textContent = correctScore;
-        // 正解のスタイル（深緑）
-        selectedBtn.classList.add('bg-emerald-50', 'border-emerald-200', 'text-correct', 'font-bold');
-        badge.classList.add('bg-emerald-100', 'border-emerald-300', 'text-emerald-700');
-        
-        resultIcon.textContent = "✧";
-        resultText.textContent = "正解";
-        resultText.className = "font-serif font-bold text-xl tracking-widest text-correct";
+        resultText.textContent = "Correct";
+        resultText.style.color = "#374151"; // チャコールグレーのまま
       } else {
-        // 不正解のスタイル（深紅）
-        selectedBtn.classList.add('bg-red-50', 'border-red-200', 'text-incorrect', 'font-bold');
-        badge.classList.add('bg-red-100', 'border-red-300', 'text-red-700');
-        
-        resultIcon.textContent = "✦";
-        resultText.textContent = "不正解";
-        resultText.className = "font-serif font-bold text-xl tracking-widest text-incorrect";
+        resultText.textContent = "Incorrect";
+        resultText.style.color = "#9CA3AF"; // 少し薄いグレー
       }
 
-      mountPhrase.textContent = data.mountPhrase;
-      explanationText.textContent = data.explanation;
-      
-      currentSpotName = data.spot || "埼玉県";
-      spotName.textContent = currentSpotName;
+      // 解説テキストのセット
+      explanationBody.textContent = data.explanation;
+      mountPhrase.textContent = `"${data.mountPhrase}"`;
+      spotName.textContent = data.spot || "No physical location";
 
+      // 解説エリアをフェードイン
       explanationArea.classList.remove('hidden');
-      explanationArea.classList.add('fade-up');
-      
-      footerAction.classList.remove('hidden');
+      nextBtn.classList.remove('hidden');
 
+      // スムーズスクロール
       setTimeout(() => {
-        footerAction.scrollIntoView({ behavior: 'smooth', block: 'end' });
-      }, 100);
+        window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+      }, 300);
     }
 
-    // 地図検索へ飛ばす
-    function searchSpot() {
-      const query = encodeURIComponent(currentSpotName);
-      window.open(`https://www.google.com/maps/search/?api=1&query=${query}`, '_blank');
-    }
-
-    // 次へ
+    // 次のトラックへ
     nextBtn.onclick = () => {
       currentIndex++;
       if (currentIndex < QUIZ_DATABASE.length) {
-        loadQuestion(currentIndex);
         window.scrollTo({ top: 0, behavior: 'smooth' });
+        setTimeout(() => {
+          loadQuestion(currentIndex);
+        }, 300); // スクロール後に切り替え
       } else {
         showFinalResult();
       }
@@ -330,25 +275,24 @@
 
     // 終了画面
     function showFinalResult() {
-      const rate = Math.round((correctScore / QUIZ_DATABASE.length) * 100);
-      
       quizContainer.innerHTML = `
-        <div class="fade-up bg-white border border-stone-100 rounded-3xl p-8 text-center shadow-float my-auto">
-          <p class="font-serif text-accent tracking-widest text-sm mb-6">探求の記録</p>
-          <div class="font-serif text-4xl text-ink mb-2">
-            ${correctScore} <span class="text-xl text-stone-400 mx-1">/</span> ${QUIZ_DATABASE.length}
-          </div>
-          <p class="text-sm text-subtle mb-10">正答率 ${rate}%</p>
-          
-          <button onclick="location.reload()" class="w-full py-4 bg-stone-100 hover:bg-stone-200 text-stone-700 rounded-xl font-serif tracking-widest transition-colors">
-            もう一度挑む
+        <div class="text-center fade-in space-y-8 mt-12">
+          <div class="text-xs tracking-widest uppercase opacity-60">End of Tour</div>
+          <h1 class="text-2xl font-light tracking-widest">Exhibition Completed</h1>
+          <div class="museum-divider w-16 mx-auto"></div>
+          <p class="text-sm opacity-80 leading-loose">
+            Thank you for exploring the depths of Saitama.<br>
+            Please return your audio guide to the reception.
+          </p>
+          <button onclick="location.reload()" class="mt-12 text-xs tracking-widest uppercase opacity-60 hover:opacity-100 transition-opacity">
+            Restart Tour
           </button>
         </div>
       `;
-      footerAction.classList.add('hidden');
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      nextBtn.classList.add('hidden');
     }
 
+    // ユーティリティ
     function shuffleArray(array) {
       const arr = [...array];
       for (let i = arr.length - 1; i > 0; i--) {
@@ -358,6 +302,7 @@
       return arr;
     }
 
+    // 実行
     initQuiz();
   </script>
 </body>
