@@ -76,8 +76,8 @@
 </head>
 <body class="text-ink font-sans min-h-screen flex flex-col selection:bg-accentLight selection:text-accent relative">
 
-  <!-- ==================== ヘッダー ==================== -->
-  <header id="mainHeader" class="glass-header border-b border-stone-200 px-4 py-4 sticky top-0 z-40 flex items-center justify-between hidden">
+  <!-- ==================== ヘッダー（常時表示に変更） ==================== -->
+  <header id="mainHeader" class="glass-header border-b border-stone-200 px-4 py-4 sticky top-0 z-40 flex items-center justify-between">
     <div class="flex items-center space-x-3">
       <button id="backBtn" class="hidden text-stone-500 hover:text-ink p-1" onclick="goBack()" aria-label="戻る">
         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
@@ -88,7 +88,7 @@
       </div>
     </div>
     
-    <!-- 右側：プログレス ＆ マイページボタン -->
+    <!-- ★マイページアイコン（画面右上・この1箇所のみ） -->
     <div class="flex items-center space-x-3">
       <div id="quizProgressBadge" class="hidden text-xs font-medium text-subtle tracking-widest border border-stone-200 rounded-full px-3 py-1 bg-white/50">
         <span id="correctCount" class="text-ink font-bold">0</span> / <span id="totalCount">0</span>
@@ -103,11 +103,7 @@
     
     <!-- ==================== 開始画面 ==================== -->
     <div id="startScreen" class="flex-1 flex flex-col justify-center items-center text-center fade-up w-full transition-all duration-300">
-      <div class="absolute top-0 right-0 p-4">
-        <button onclick="toggleDashboard()" class="p-2 text-stone-500 hover:text-accent transition-colors bg-white rounded-full shadow-soft border border-stone-100">
-          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-        </button>
-      </div>
+      <!-- ※ ここにあった右上のボタンブロックを削除しました -->
 
       <p class="text-accent font-serif tracking-widest text-sm mb-3">埼玉完全攻略</p>
       <h1 class="text-4xl md:text-5xl font-serif font-bold text-ink tracking-widest mb-10 leading-tight">
@@ -116,7 +112,7 @@
       </h1>
 
       <div id="loadingIndicator" class="animate-pulse text-stone-400 font-serif tracking-widest text-sm">
-        叡智を読み込んでいます... ✧
+        問題を読み込んでいます... ✧
       </div>
 
       <div id="startMenu" class="hidden w-full max-w-sm space-y-6 fade-up text-left">
@@ -683,16 +679,8 @@
       document.getElementById('footerAction').classList.add('hidden');
       quizProgressBadge.classList.add('hidden');
       document.getElementById('backBtn').classList.add('hidden');
+      // ※ mainHeader.classList.add('hidden'); を削除
       window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-
-    function shuffleArray(array) {
-      const arr = [...array];
-      for (let i = arr.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [arr[i], arr[j]] = [arr[j], arr[i]];
-      }
-      return arr;
     }
 
     initApp();
