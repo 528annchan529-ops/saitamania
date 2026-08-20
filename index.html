@@ -48,12 +48,9 @@
     }
     .fade-up-delay-1 { animation-delay: 0.1s; }
     .fade-up-delay-2 { animation-delay: 0.2s; }
-    .fade-up-delay-3 { animation-delay: 0.3s; }
-    
     @keyframes fadeUp {
       to { opacity: 1; transform: translateY(0); }
     }
-    
     .editorial-quote::before {
       content: '“';
       position: absolute;
@@ -76,157 +73,132 @@
       transform: scale(0.98);
       box-shadow: 0 2px 8px -2px rgba(0,0,0,0.05);
     }
-
-    /* 画面切り替え用のトランジション */
-    .screen-transition {
-      transition: opacity 0.4s ease, transform 0.4s ease;
-    }
-    .screen-hidden {
-      opacity: 0;
-      pointer-events: none;
-      position: absolute;
-      width: 100%;
-      height: 100%;
-    }
   </style>
 </head>
-<body class="text-ink font-sans min-h-screen flex flex-col selection:bg-accentLight selection:text-accent overflow-x-hidden">
+<body class="text-ink font-sans min-h-screen flex flex-col selection:bg-accentLight selection:text-accent relative">
 
-  <!-- ========================================== -->
-  <!-- スタート画面 (Screen: Start)               -->
-  <!-- ========================================== -->
-  <div id="startScreen" class="screen-transition flex-1 flex flex-col justify-center max-w-lg mx-auto w-full px-6 py-12 relative z-10 overflow-y-auto min-h-screen">
-    <div class="text-center mb-8 fade-up">
-      <p class="font-serif text-accent tracking-[0.3em] text-xs font-bold mb-3 uppercase">Saitama Deep Knowledge</p>
-      <h1 class="font-serif text-5xl md:text-6xl font-black text-ink mb-4 tracking-wider">SAITAMANIA</h1>
-      <p class="text-subtle text-sm tracking-widest border-t border-stone-200 pt-4 w-3/4 mx-auto">埼玉探求の書</p>
-    </div>
-
-    <div class="space-y-6 fade-up fade-up-delay-1">
-      <div id="loadingStatus" class="bg-white border border-stone-200 rounded-2xl p-6 shadow-soft text-center h-40 flex flex-col justify-center items-center">
-        <!-- ローディングアニメーション -->
-        <div class="animate-spin h-6 w-6 border-2 border-accent border-t-transparent rounded-full mb-3"></div>
-        <p class="text-sm font-bold text-stone-600 tracking-wider">知識の書を読み込み中...</p>
-        <p class="text-xs text-stone-400 mt-2">通信環境により数秒かかります</p>
-      </div>
-
-      <!-- データロード完了後に表示される設定パネル -->
-      <div id="setupPanel" class="hidden bg-white border border-stone-200 rounded-2xl p-6 shadow-soft text-center">
-        <p class="text-xs font-bold text-subtle tracking-widest mb-4">探求の長さを選択</p>
-        
-        <div class="grid grid-cols-3 gap-3 mb-6">
-          <button onclick="selectQuestionCount(10)" id="btn-count-10" class="count-btn py-3 rounded-xl border border-stone-200 text-stone-600 font-bold transition-all hover:bg-stone-50 active:scale-95">10問</button>
-          <button onclick="selectQuestionCount(30)" id="btn-count-30" class="count-btn py-3 rounded-xl border border-stone-200 text-stone-600 font-bold transition-all hover:bg-stone-50 active:scale-95">30問</button>
-          <button onclick="selectQuestionCount('all')" id="btn-count-all" class="count-btn py-3 rounded-xl border border-stone-200 text-stone-600 font-bold transition-all hover:bg-stone-50 active:scale-95">全問</button>
-        </div>
-
-        <button id="startBtn" onclick="startQuiz()" disabled class="w-full py-4 bg-stone-300 text-stone-500 rounded-xl font-serif tracking-widest transition-all duration-300 relative overflow-hidden flex items-center justify-center space-x-2">
-          <span class="relative z-10">探求を始める</span>
-        </button>
-        <p id="totalAvailable" class="text-xs text-stone-400 mt-3 font-medium tracking-wide"></p>
-      </div>
-    </div>
-  </div>
-
-  <!-- ========================================== -->
-  <!-- クイズ画面 (Screen: Quiz)                  -->
-  <!-- ========================================== -->
-  <div id="quizScreen" class="screen-transition screen-hidden flex-1 flex flex-col min-h-screen">
-    
-    <!-- ヘッダー -->
-    <header class="glass-header border-b border-stone-200 px-4 py-4 sticky top-0 z-50 flex items-center justify-between">
-      <div class="flex items-center space-x-3">
-        <button id="backBtn" class="hidden text-stone-500 hover:text-ink transition-colors p-1" onclick="goBack()" aria-label="前の問題に戻る">
-          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
-        </button>
-        <div class="font-serif tracking-widest text-lg font-bold text-accent">SAITAMANIA</div>
-      </div>
-      <div class="text-xs font-medium text-subtle tracking-widest border border-stone-200 rounded-full px-3 py-1 bg-white/50 shadow-sm">
-        <span id="correctCount" class="text-ink font-bold">0</span> / <span id="totalCount">0</span>
-      </div>
-    </header>
-
-    <!-- メインコンテンツ -->
-    <!-- メインコンテンツ -->
-    <main class="flex-1 max-w-lg w-full mx-auto px-6 pt-4 pb-24 flex flex-col">
-      <div id="quizContainer" class="flex-1 flex flex-col justify-start">
-        
-        <div id="metaTags" class="flex items-center space-x-3 mb-4 mt-2">
-          <span id="cityBadge" class="text-xs font-serif font-bold tracking-widest text-accent border-b border-accent pb-0.5"></span>
-          <span class="text-stone-300">|</span>
-          <span id="subThemeBadge" class="text-xs text-subtle tracking-wide"></span>
-        </div>
-
-        <div class="mb-10">
-          <h1 id="questionText" class="font-serif text-xl md:text-2xl font-semibold leading-relaxed tracking-wide"></h1>
-        </div>
-
-        <div id="optionsContainer" class="space-y-4">
-          <!-- JSで動的生成 -->
-        </div>
-
-        <div id="explanationArea" class="hidden mt-10 space-y-8">
-          
-          <div class="text-center border-b border-stone-200 pb-4">
-            <span id="resultIcon" class="text-2xl mr-2"></span>
-            <span id="resultText" class="font-serif font-bold text-lg tracking-wide"></span>
-          </div>
-
-          <div class="relative editorial-quote pl-6 pr-2">
-            <p class="text-xs font-bold text-accent tracking-widest mb-2 uppercase">Dialogue / 語り口</p>
-            <p id="mountPhrase" class="font-serif text-lg leading-relaxed text-ink"></p>
-          </div>
-
-          <div class="bg-white p-6 rounded-2xl shadow-soft border border-stone-100">
-            <p class="text-xs font-bold text-subtle tracking-widest mb-3 uppercase">Fact / 史実と背景</p>
-            <p id="explanationText" class="text-sm leading-relaxed text-stone-700"></p>
-          </div>
-
-          <div class="bg-stone-800 text-paper rounded-2xl p-6 shadow-float relative overflow-hidden group">
-            <div class="absolute -right-4 -top-4 w-24 h-24 bg-accent/20 rounded-full blur-2xl"></div>
-            <p class="text-xs font-bold text-stone-400 tracking-widest mb-2 uppercase relative z-10">Destination / 巡礼地</p>
-            <h3 id="spotName" class="font-serif text-xl font-bold mb-4 relative z-10 leading-snug"></h3>
-            <button onclick="searchSpot()" class="relative z-10 w-full py-3 bg-paper text-ink hover:bg-stone-200 transition-colors rounded-xl text-sm font-bold tracking-wide flex items-center justify-center space-x-2">
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
-              <span>地図で場所を確認する</span>
-            </button>
-          </div>
-          
-        </div>
-      </div>
-    </main>
-
-    <div id="footerAction" class="hidden fixed bottom-0 left-0 w-full p-6 bg-gradient-to-t from-paper via-paper to-transparent z-40">
-      <button id="nextBtn" class="max-w-lg mx-auto w-full py-4 bg-accent hover:bg-accent/90 text-white shadow-float rounded-xl font-serif tracking-widest transition-transform active:scale-95 flex items-center justify-center space-x-2">
-        <span>次の探求へ</span>
-        <span class="text-xl">→</span>
+  <!-- ヘッダー（クイズ中のみ表示） -->
+  <header id="mainHeader" class="hidden glass-header border-b border-stone-200 px-4 py-4 sticky top-0 z-50 flex items-center justify-between">
+    <div class="flex items-center space-x-3">
+      <button id="backBtn" class="hidden text-stone-500 hover:text-ink transition-colors p-1" onclick="goBack()" aria-label="前の問題に戻る">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
       </button>
+      <div class="font-serif tracking-widest text-lg font-bold text-accent">
+        SAITAMANIA
+      </div>
     </div>
+    <div class="text-xs font-medium text-subtle tracking-widest border border-stone-200 rounded-full px-3 py-1 bg-white/50">
+      <span id="correctCount" class="text-ink font-bold">0</span> / <span id="totalCount">0</span>
+    </div>
+  </header>
+
+  <main class="flex-1 max-w-lg w-full mx-auto p-6 flex flex-col justify-center relative">
+    
+    <!-- ★ 開始画面（Start Screen） -->
+    <div id="startScreen" class="flex-1 flex flex-col justify-center items-center text-center fade-up w-full">
+      <p class="text-accent font-serif tracking-widest text-sm mb-3">埼玉完全攻略</p>
+      <h1 class="text-4xl md:text-5xl font-serif font-bold text-ink tracking-widest mb-12 leading-tight">
+        SAITAMANIA<br>
+        <span class="text-xl md:text-2xl mt-4 block text-subtle font-medium">埼玉探求の書</span>
+      </h1>
+
+      <!-- ローディング表示 -->
+      <div id="loadingIndicator" class="animate-pulse text-stone-400 font-serif tracking-widest">
+        叡智を読み込んでいます... ✧
+      </div>
+
+      <!-- メニュー表示（データ取得後に表示） -->
+      <div id="startMenu" class="hidden w-full max-w-xs space-y-8 fade-up">
+        <div>
+          <p class="text-xs font-bold text-stone-400 tracking-widest uppercase mb-4">出題数を選択</p>
+          <div class="grid grid-cols-2 gap-3" id="questionCountSelectors">
+            <!-- JSでボタンを動的生成 -->
+          </div>
+        </div>
+        
+        <button onclick="startQuiz()" class="w-full py-4 bg-ink text-paper hover:bg-stone-800 transition-colors rounded-xl font-serif tracking-widest shadow-float flex items-center justify-center space-x-2">
+          <span>探求を始める</span>
+          <span class="text-xl">→</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- ★ クイズ画面（Quiz Screen） -->
+    <div id="quizScreen" class="hidden flex-1 flex-col justify-center w-full pb-20">
+      <div id="metaTags" class="flex items-center space-x-3 mb-6">
+        <span id="cityBadge" class="text-xs font-serif font-bold tracking-widest text-accent border-b border-accent pb-0.5"></span>
+        <span class="text-stone-300">|</span>
+        <span id="subThemeBadge" class="text-xs text-subtle tracking-wide"></span>
+      </div>
+
+      <div class="mb-10">
+        <h2 id="questionText" class="font-serif text-2xl md:text-3xl font-semibold leading-relaxed tracking-wide">
+          <!-- 問題文 -->
+        </h2>
+      </div>
+
+      <div id="optionsContainer" class="space-y-4">
+        <!-- 選択肢 -->
+      </div>
+
+      <div id="explanationArea" class="hidden mt-10 space-y-8">
+        <div class="text-center border-b border-stone-200 pb-4">
+          <span id="resultIcon" class="text-2xl mr-2"></span>
+          <span id="resultText" class="font-serif font-bold text-lg tracking-wide"></span>
+        </div>
+
+        <div class="relative editorial-quote pl-6 pr-2">
+          <p class="text-xs font-bold text-accent tracking-widest mb-2 uppercase">Dialogue / 語り口</p>
+          <p id="mountPhrase" class="font-serif text-lg leading-relaxed text-ink"></p>
+        </div>
+
+        <div class="bg-white p-6 rounded-2xl shadow-soft border border-stone-100">
+          <p class="text-xs font-bold text-subtle tracking-widest mb-3 uppercase">Fact / 史実と背景</p>
+          <p id="explanationText" class="text-sm leading-relaxed text-stone-700"></p>
+        </div>
+
+        <div class="bg-stone-800 text-paper rounded-2xl p-6 shadow-float relative overflow-hidden group">
+          <div class="absolute -right-4 -top-4 w-24 h-24 bg-accent/20 rounded-full blur-2xl"></div>
+          <p class="text-xs font-bold text-stone-400 tracking-widest mb-2 uppercase relative z-10">Destination / 巡礼地</p>
+          <h3 id="spotName" class="font-serif text-xl font-bold mb-4 relative z-10 leading-snug"></h3>
+          <button onclick="searchSpot()" class="relative z-10 w-full py-3 bg-paper text-ink hover:bg-stone-200 transition-colors rounded-xl text-sm font-bold tracking-wide flex items-center justify-center space-x-2">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+            <span>地図で場所を確認する</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <div id="footerAction" class="hidden fixed bottom-0 left-0 w-full p-6 bg-gradient-to-t from-paper via-paper to-transparent z-40">
+    <button id="nextBtn" class="max-w-lg mx-auto w-full py-4 bg-accent hover:bg-accent/90 text-white shadow-float rounded-xl font-serif tracking-widest transition-transform active:scale-95 flex items-center justify-center space-x-2">
+      <span>次の探求へ</span>
+      <span class="text-xl">→</span>
+    </button>
   </div>
 
   <script>
     // ==============================================================
-    // 設定とデータ格納
+    // ★ GASのウェブアプリURLをここに貼り付けてください
     // ==============================================================
-    const API_URL = "https://script.google.com/macros/s/AKfycbzgKf5P9EZi9DACFiL9JWqXpFiBE6qDSgA2ATScYz5pALpMIvDYrknPuieU4FMn-0k/exec";
+    const API_URL = "https://script.google.com/macros/s/YOUR_GAS_WEB_APP_URL/exec";
 
-    let MASTER_DATABASE = []; // APIから取得した全データ
-    let QUIZ_DATABASE = [];   // 出題用に絞り込んだデータ
+    let ALL_QUIZ_DATA = []; // スプレッドシートの全データ
+    let QUIZ_DATABASE = []; // 実際にプレイするデータ（絞り込み後）
+    let selectedCount = 10; // デフォルトの選択問題数
+    
     let currentIndex = 0;
     let scoreHistory = []; 
     let isAnswered = false;
     let currentSpotName = ""; 
-    let selectedCount = 10;   // デフォルトの問題数
 
-    // DOM Elements (Start Screen)
+    // DOM Elements
     const startScreen = document.getElementById('startScreen');
-    const loadingStatus = document.getElementById('loadingStatus');
-    const setupPanel = document.getElementById('setupPanel');
-    const startBtn = document.getElementById('startBtn');
-    const totalAvailableText = document.getElementById('totalAvailable');
-    
-    // DOM Elements (Quiz Screen)
+    const loadingIndicator = document.getElementById('loadingIndicator');
+    const startMenu = document.getElementById('startMenu');
+    const mainHeader = document.getElementById('mainHeader');
     const quizScreen = document.getElementById('quizScreen');
+
     const backBtn = document.getElementById('backBtn');
     const cityBadge = document.getElementById('cityBadge');
     const subThemeBadge = document.getElementById('subThemeBadge');
@@ -242,92 +214,77 @@
     const nextBtn = document.getElementById('nextBtn');
     const correctCountElem = document.getElementById('correctCount');
     const totalCountElem = document.getElementById('totalCount');
-    const quizContainer = document.getElementById('quizContainer');
 
-    // ==============================================================
-    // 初期化とスタート画面ロジック
-    // ==============================================================
-    
-    // アプリ起動時に裏側でデータを読み込む
-    async function prefetchData() {
+    // ==========================================
+    // 1. 初期化と開始画面ロジック
+    // ==========================================
+    async function initApp() {
       try {
         const response = await fetch(API_URL);
         const data = await response.json();
         
         if (data && data.length > 0) {
-          MASTER_DATABASE = data;
-          
-          // ロード完了したら設定パネルを表示
-          loadingStatus.classList.add('hidden');
-          setupPanel.classList.remove('hidden');
-          setupPanel.classList.add('fade-up');
-          
-          totalAvailableText.textContent = `現在、全 ${MASTER_DATABASE.length} 問が収録されています`;
-          
-          // デフォルトで10問を選択状態にする
-          selectQuestionCount(10);
+          ALL_QUIZ_DATA = data;
+          loadingIndicator.classList.add('hidden');
+          startMenu.classList.remove('hidden');
+          renderCountSelectors();
         } else {
-          loadingStatus.innerHTML = '<p class="text-red-500 font-bold">データが0件です。<br>スプレッドシートを確認してください。</p>';
+          loadingIndicator.textContent = "記録が見つかりません。データベースを確認してください。";
         }
       } catch (error) {
         console.error("API Error:", error);
-        loadingStatus.innerHTML = '<p class="text-red-500 font-bold">通信エラーが発生しました。<br>再読み込みしてください。</p>';
+        loadingIndicator.textContent = "通信の乱れにより、探求の書を開けませんでした。";
       }
     }
 
-    // 問題数ボタンの選択処理
-    function selectQuestionCount(count) {
+    function renderCountSelectors() {
+      const container = document.getElementById('questionCountSelectors');
+      const maxCount = ALL_QUIZ_DATA.length;
+      
+      // 用意する選択肢の基準（最大数を超えないものだけフィルタリング）
+      const baseOptions = [5, 10, 20];
+      let validOptions = baseOptions.filter(num => num < maxCount);
+      validOptions.push(maxCount); // 最後に「すべて」を追加
+
+      // 10問があれば10問を、なければ一番小さい数を選択状態にする
+      selectedCount = validOptions.includes(10) ? 10 : validOptions[0];
+
+      container.innerHTML = validOptions.map(opt => `
+        <button onclick="selectCount(${opt})" id="countBtn-${opt}" class="count-btn py-3 border border-stone-200 rounded-xl font-serif text-sm text-stone-500 bg-white transition-all ${opt === selectedCount ? 'ring-2 ring-accent border-accent text-accent font-bold bg-accentLight/30' : ''}">
+          ${opt === maxCount ? 'すべて (' + maxCount + ')' : opt + ' 問'}
+        </button>
+      `).join('');
+    }
+
+    // グローバルに公開（HTML側からのonclick用）
+    window.selectCount = function(count) {
       selectedCount = count;
-      
-      // ボタンのスタイルリセット
       document.querySelectorAll('.count-btn').forEach(btn => {
-        btn.classList.remove('bg-ink', 'text-white', 'shadow-md', 'border-ink');
-        btn.classList.add('text-stone-600', 'border-stone-200');
+        btn.className = "count-btn py-3 border border-stone-200 rounded-xl font-serif text-sm text-stone-500 bg-white transition-all";
       });
-
-      // 選択されたボタンを強調
-      const activeBtn = document.getElementById(`btn-count-${count}`);
-      activeBtn.classList.remove('text-stone-600', 'border-stone-200');
-      activeBtn.classList.add('bg-ink', 'text-white', 'shadow-md', 'border-ink');
-
-      // 開始ボタンをアクティブに
-      startBtn.disabled = false;
-      startBtn.classList.remove('bg-stone-300', 'text-stone-500');
-      startBtn.classList.add('bg-accent', 'text-white', 'hover:bg-accent/90', 'shadow-float');
+      const selectedBtn = document.getElementById(`countBtn-${count}`);
+      selectedBtn.classList.add('ring-2', 'ring-accent', 'border-accent', 'text-accent', 'font-bold', 'bg-accentLight/30');
     }
 
-    // 探求を始める（スタートボタン押下）
-    function startQuiz() {
-      // データベースをシャッフル
-      const shuffledMaster = shuffleArray(MASTER_DATABASE);
-      
-      // 選択された問題数で切り取る
-      if (selectedCount === 'all') {
-        QUIZ_DATABASE = shuffledMaster;
-      } else {
-        // もしDBの数が選択数より少なければDBの数を上限にする
-        const sliceLength = Math.min(selectedCount, shuffledMaster.length);
-        QUIZ_DATABASE = shuffledMaster.slice(0, sliceLength);
-      }
-
-      // クイズ画面の初期化
+    // 探求を始めるボタン
+    window.startQuiz = function() {
+      // データをシャッフルして、選択された件数だけ抽出
+      QUIZ_DATABASE = shuffleArray(ALL_QUIZ_DATA).slice(0, selectedCount);
       totalCountElem.textContent = QUIZ_DATABASE.length;
       scoreHistory = new Array(QUIZ_DATABASE.length).fill(null);
-      currentIndex = 0;
       
-      // 画面のトランジション（スタート画面を消し、クイズ画面をフェードイン）
-      startScreen.classList.add('screen-hidden');
-      setTimeout(() => {
-        quizScreen.classList.remove('screen-hidden');
-        loadQuestion(0);
-        window.scrollTo(0, 0);
-      }, 400); // fade out duration
+      // 画面の切り替え
+      startScreen.classList.add('hidden');
+      mainHeader.classList.remove('hidden');
+      quizScreen.classList.remove('hidden');
+      quizScreen.classList.add('flex');
+
+      loadQuestion(0);
     }
 
-    // ==============================================================
-    // クイズメインロジック
-    // ==============================================================
-
+    // ==========================================
+    // 2. クイズ進行ロジック
+    // ==========================================
     function updateScoreDisplay() {
       const correctScore = scoreHistory.filter(val => val === true).length;
       correctCountElem.textContent = correctScore;
@@ -338,30 +295,26 @@
       explanationArea.classList.add('hidden');
       footerAction.classList.add('hidden');
       
-      if (index === 0) {
-        backBtn.classList.add('hidden');
-      } else {
-        backBtn.classList.remove('hidden');
-      }
+      if (index === 0) backBtn.classList.add('hidden');
+      else backBtn.classList.remove('hidden');
 
       updateScoreDisplay();
 
-      // 問題文のアニメーション再発火
       const metaTags = document.getElementById('metaTags');
       metaTags.classList.remove('fade-up');
       void metaTags.offsetWidth; 
       metaTags.classList.add('fade-up');
-
-      const questionElement = document.getElementById('questionText');
-      questionElement.parentElement.classList.remove('fade-up', 'fade-up-delay-1');
-      void questionElement.offsetWidth;
-      questionElement.parentElement.classList.add('fade-up', 'fade-up-delay-1');
+      
+      // 問題文にもアニメーション適用
+      questionText.classList.remove('fade-up-delay-1', 'fade-up');
+      void questionText.offsetWidth; 
+      questionText.classList.add('fade-up', 'fade-up-delay-1');
 
       const data = QUIZ_DATABASE[index];
       
       cityBadge.textContent = data.city || "埼玉全域";
       subThemeBadge.textContent = data.subTheme || "未分類";
-      questionText.innerHTML = `<span class="text-accent text-sm md:text-base mr-2 block mb-1">Question ${index + 1}</span>${data.question}`;
+      questionText.innerHTML = `Q${index + 1}.<br>${data.question}`;
 
       const rawOptions = [
         { text: data.correctAnswer, isCorrect: true },
@@ -373,17 +326,10 @@
       data.shuffledOptions = shuffleArray(rawOptions);
 
       optionsContainer.innerHTML = '';
-      
-      // 選択肢のアニメーション再発火
-      optionsContainer.classList.remove('fade-up', 'fade-up-delay-2');
-      void optionsContainer.offsetWidth;
-      optionsContainer.classList.add('fade-up', 'fade-up-delay-2');
-
       data.shuffledOptions.forEach((opt, i) => {
         const btn = document.createElement('button');
-        btn.className = "option-card w-full p-5 bg-white border border-stone-100 shadow-soft rounded-2xl text-left font-medium text-stone-700 flex items-center space-x-4";
+        btn.className = "fade-up fade-up-delay-2 option-card w-full p-5 bg-white border border-stone-100 shadow-soft rounded-2xl text-left font-medium text-stone-700 flex items-center space-x-4";
         btn.dataset.isCorrect = opt.isCorrect;
-        
         btn.innerHTML = `
           <span class="badge w-8 h-8 rounded-full border border-stone-200 flex items-center justify-center text-xs font-serif text-stone-400 shrink-0 bg-stone-50">${String.fromCharCode(65 + i)}</span>
           <span class="leading-relaxed">${opt.text}</span>
@@ -401,7 +347,6 @@
       updateScoreDisplay();
 
       const buttons = optionsContainer.querySelectorAll('button');
-      
       buttons.forEach(btn => {
         btn.disabled = true;
         const badge = btn.querySelector('.badge');
@@ -436,10 +381,7 @@
       spotName.textContent = currentSpotName;
 
       explanationArea.classList.remove('hidden');
-      explanationArea.classList.remove('fade-up');
-      void explanationArea.offsetWidth;
       explanationArea.classList.add('fade-up');
-      
       footerAction.classList.remove('hidden');
 
       setTimeout(() => {
@@ -447,7 +389,7 @@
       }, 100);
     }
 
-    function goBack() {
+    window.goBack = function() {
       if (currentIndex > 0) {
         scoreHistory[currentIndex] = null;
         currentIndex--;
@@ -457,7 +399,7 @@
       }
     }
 
-    function searchSpot() {
+    window.searchSpot = function() {
       const query = encodeURIComponent(currentSpotName);
       window.open(`https://www.google.com/maps/search/?api=1&query=${query}`, '_blank');
     }
@@ -476,21 +418,21 @@
       const correctScore = scoreHistory.filter(val => val === true).length;
       const rate = Math.round((correctScore / QUIZ_DATABASE.length) * 100);
       
-      quizContainer.innerHTML = `
-        <div class="fade-up bg-white border border-stone-100 rounded-3xl p-8 text-center shadow-float my-auto">
+      quizScreen.innerHTML = `
+        <div class="fade-up bg-white border border-stone-100 rounded-3xl p-8 text-center shadow-float my-auto w-full">
           <p class="font-serif text-accent tracking-widest text-sm mb-6">探求の記録</p>
-          <div class="font-serif text-4xl text-ink mb-2">
-            ${correctScore} <span class="text-xl text-stone-400 mx-1">/</span> ${QUIZ_DATABASE.length}
+          <div class="font-serif text-5xl text-ink mb-3 font-bold">
+            ${correctScore} <span class="text-2xl text-stone-300 mx-1">/</span> ${QUIZ_DATABASE.length}
           </div>
-          <p class="text-sm text-subtle mb-10">正答率 ${rate}%</p>
+          <p class="text-sm font-bold text-stone-500 mb-10 tracking-widest">正答率 ${rate}%</p>
           
-          <button onclick="location.reload()" class="w-full py-4 bg-stone-100 hover:bg-stone-200 text-stone-700 rounded-xl font-serif tracking-widest transition-colors">
-            トップ画面に戻る
+          <button onclick="location.reload()" class="w-full py-4 bg-ink text-paper hover:bg-stone-800 rounded-xl font-serif tracking-widest transition-colors shadow-soft">
+            書を閉じ、再び探求する
           </button>
         </div>
       `;
       footerAction.classList.add('hidden');
-      backBtn.classList.add('hidden');
+      mainHeader.classList.add('hidden');
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
@@ -503,8 +445,8 @@
       return arr;
     }
 
-    // 起動処理（データのプリフェッチ）
-    window.addEventListener('DOMContentLoaded', prefetchData);
+    // アプリケーション起動
+    initApp();
   </script>
 </body>
 </html>
