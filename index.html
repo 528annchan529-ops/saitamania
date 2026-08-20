@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>SAITAMANIA | 埼玉探求の書</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Google Fonts: Noto Serif JP (明朝体) と Noto Sans JP (ゴシック体) -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=Noto+Serif+JP:wght@400;600;900&display=swap" rel="stylesheet">
@@ -19,14 +18,13 @@
             sans: ['"Noto Sans JP"', 'sans-serif'],
           },
           colors: {
-            // エディトリアル風のカラースキーム
-            paper: '#FAFAF9', // 温かみのあるアイボリー（背景）
-            ink: '#1C1917',   // 墨黒（メインテキスト）
-            subtle: '#78716C', // 落ち着いたグレー（サブテキスト）
-            accent: '#831843', // えんじ色（和のアクセント）
+            paper: '#FAFAF9',
+            ink: '#1C1917',
+            subtle: '#78716C',
+            accent: '#831843',
             accentLight: '#FCE7F3',
-            correct: '#065F46', // 深緑（正解）
-            incorrect: '#991B1B' // 深紅（不正解）
+            correct: '#065F46', 
+            incorrect: '#991B1B' 
           },
           boxShadow: {
             'soft': '0 4px 20px -2px rgba(0, 0, 0, 0.05)',
@@ -38,46 +36,36 @@
   </script>
   <style>
     body {
-      background-color: #FAFAF9; /* paper */
+      background-color: #FAFAF9;
       -webkit-tap-highlight-color: transparent;
       background-image: radial-gradient(#E7E5E4 1px, transparent 1px);
       background-size: 24px 24px;
     }
-    
-    /* エレガントなフェード＆スライドイン */
     .fade-up {
       animation: fadeUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
       opacity: 0;
       transform: translateY(16px);
     }
-    
     .fade-up-delay-1 { animation-delay: 0.1s; }
     .fade-up-delay-2 { animation-delay: 0.2s; }
-    
     @keyframes fadeUp {
       to { opacity: 1; transform: translateY(0); }
     }
-
-    /* 雑誌のコラム風 引用符装飾 */
     .editorial-quote::before {
       content: '“';
       position: absolute;
       top: -10px;
       left: -5px;
       font-size: 4rem;
-      color: rgba(131, 24, 67, 0.1); /* accent色の透過 */
+      color: rgba(131, 24, 67, 0.1);
       font-family: serif;
       line-height: 1;
     }
-
-    /* Glassmorphism風のヘッダー */
     .glass-header {
       background: rgba(250, 250, 249, 0.85);
       backdrop-filter: blur(12px);
       -webkit-backdrop-filter: blur(12px);
     }
-    
-    /* 選択肢ボタンの押し込みエフェクト */
     .option-card {
       transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
     }
@@ -89,10 +77,16 @@
 </head>
 <body class="text-ink font-sans min-h-screen flex flex-col selection:bg-accentLight selection:text-accent">
 
-  <!-- ヘッダー (Glassmorphism) -->
-  <header class="glass-header border-b border-stone-200 px-6 py-4 sticky top-0 z-50 flex items-center justify-between">
-    <div class="font-serif tracking-widest text-lg font-bold text-accent">
-      SAITAMANIA
+  <!-- ヘッダー -->
+  <header class="glass-header border-b border-stone-200 px-4 py-4 sticky top-0 z-50 flex items-center justify-between">
+    <div class="flex items-center space-x-3">
+      <!-- ★追加：戻るボタン（1問目では非表示） -->
+      <button id="backBtn" class="hidden text-stone-500 hover:text-ink transition-colors p-1" onclick="goBack()" aria-label="前の問題に戻る">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+      </button>
+      <div class="font-serif tracking-widest text-lg font-bold text-accent">
+        SAITAMANIA
+      </div>
     </div>
     <div class="text-xs font-medium text-subtle tracking-widest border border-stone-200 rounded-full px-3 py-1 bg-white/50">
       <span id="correctCount" class="text-ink font-bold">0</span> / <span id="totalCount">0</span>
@@ -101,58 +95,45 @@
 
   <!-- メインコンテンツ -->
   <main class="flex-1 max-w-lg w-full mx-auto p-6 pb-24 flex flex-col">
-    
     <div id="quizContainer" class="flex-1 flex flex-col justify-center">
       
-      <!-- メタ情報 -->
       <div id="metaTags" class="flex items-center space-x-3 mb-6 fade-up">
         <span id="cityBadge" class="text-xs font-serif font-bold tracking-widest text-accent border-b border-accent pb-0.5"></span>
         <span class="text-stone-300">|</span>
         <span id="subThemeBadge" class="text-xs text-subtle tracking-wide"></span>
       </div>
 
-      <!-- 問題文 -->
       <div class="mb-10 fade-up fade-up-delay-1">
         <h1 id="questionText" class="font-serif text-2xl md:text-3xl font-semibold leading-relaxed tracking-wide">
           <span class="animate-pulse text-stone-400 text-lg">探求の書を開いています...</span>
         </h1>
       </div>
 
-      <!-- 選択肢エリア -->
       <div id="optionsContainer" class="space-y-4 fade-up fade-up-delay-2">
         <!-- JSで動的生成 -->
       </div>
 
-      <!-- 解説エリア（雑誌コラム風） -->
       <div id="explanationArea" class="hidden mt-10 space-y-8">
         
-        <!-- 判定テキスト -->
         <div class="text-center border-b border-stone-200 pb-4">
           <span id="resultIcon" class="text-2xl mr-2"></span>
           <span id="resultText" class="font-serif font-bold text-lg tracking-wide"></span>
         </div>
 
-        <!-- マウントフレーズ（引用コラム風） -->
         <div class="relative editorial-quote pl-6 pr-2">
           <p class="text-xs font-bold text-accent tracking-widest mb-2 uppercase">Dialogue / 語り口</p>
           <p id="mountPhrase" class="font-serif text-lg leading-relaxed text-ink"></p>
         </div>
 
-        <!-- 公式解説 -->
         <div class="bg-white p-6 rounded-2xl shadow-soft border border-stone-100">
           <p class="text-xs font-bold text-subtle tracking-widest mb-3 uppercase">Fact / 史実と背景</p>
           <p id="explanationText" class="text-sm leading-relaxed text-stone-700"></p>
         </div>
 
-        <!-- 巡礼スポット（最も目立たせる） -->
         <div class="bg-stone-800 text-paper rounded-2xl p-6 shadow-float relative overflow-hidden group">
-          <!-- 背景の和風アクセント -->
           <div class="absolute -right-4 -top-4 w-24 h-24 bg-accent/20 rounded-full blur-2xl"></div>
-          
           <p class="text-xs font-bold text-stone-400 tracking-widest mb-2 uppercase relative z-10">Destination / 巡礼地</p>
           <h3 id="spotName" class="font-serif text-xl font-bold mb-4 relative z-10 leading-snug"></h3>
-          
-          <!-- アクション導線風ボタン -->
           <button onclick="searchSpot()" class="relative z-10 w-full py-3 bg-paper text-ink hover:bg-stone-200 transition-colors rounded-xl text-sm font-bold tracking-wide flex items-center justify-center space-x-2">
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
             <span>地図で場所を確認する</span>
@@ -163,7 +144,6 @@
     </div>
   </main>
 
-  <!-- フッター固定 次へボタン -->
   <div id="footerAction" class="hidden fixed bottom-0 left-0 w-full p-6 bg-gradient-to-t from-paper via-paper to-transparent z-40">
     <button id="nextBtn" class="max-w-lg mx-auto w-full py-4 bg-accent hover:bg-accent/90 text-white shadow-float rounded-xl font-serif tracking-widest transition-transform active:scale-95 flex items-center justify-center space-x-2">
       <span>次の探求へ</span>
@@ -179,11 +159,15 @@
 
     let QUIZ_DATABASE = [];
     let currentIndex = 0;
-    let correctScore = 0;
+    
+    // ★追加：各問題で「正解したか」を記憶する配列（戻ったときのスコア再計算用）
+    let scoreHistory = []; 
+    
     let isAnswered = false;
-    let currentSpotName = ""; // Google Maps検索用
+    let currentSpotName = ""; 
 
     // DOM Elements
+    const backBtn = document.getElementById('backBtn');
     const cityBadge = document.getElementById('cityBadge');
     const subThemeBadge = document.getElementById('subThemeBadge');
     const questionText = document.getElementById('questionText');
@@ -200,7 +184,6 @@
     const totalCountElem = document.getElementById('totalCount');
     const quizContainer = document.getElementById('quizContainer');
 
-    // 初期化：APIからデータ取得
     async function initQuiz() {
       try {
         const response = await fetch(API_URL);
@@ -209,6 +192,7 @@
         if (data && data.length > 0) {
           QUIZ_DATABASE = shuffleArray(data);
           totalCountElem.textContent = QUIZ_DATABASE.length;
+          scoreHistory = new Array(QUIZ_DATABASE.length).fill(null); // 履歴を初期化
           loadQuestion(0);
         } else {
           questionText.textContent = "記録が見つかりません。データベースを確認してください。";
@@ -219,16 +203,30 @@
       }
     }
 
-    // 問題表示
+    // スコアの再計算と表示更新
+    function updateScoreDisplay() {
+      const correctScore = scoreHistory.filter(val => val === true).length;
+      correctCountElem.textContent = correctScore;
+    }
+
     function loadQuestion(index) {
       isAnswered = false;
       explanationArea.classList.add('hidden');
       footerAction.classList.add('hidden');
       
-      // 再生用のアニメーションクラスを一度外して付け直す
+      // 戻るボタンの表示制御（1問目は隠す）
+      if (index === 0) {
+        backBtn.classList.add('hidden');
+      } else {
+        backBtn.classList.remove('hidden');
+      }
+
+      // スコア表示を現在の状態に合わせる
+      updateScoreDisplay();
+
       const metaTags = document.getElementById('metaTags');
       metaTags.classList.remove('fade-up');
-      void metaTags.offsetWidth; // reflow
+      void metaTags.offsetWidth; 
       metaTags.classList.add('fade-up');
 
       const data = QUIZ_DATABASE[index];
@@ -242,17 +240,21 @@
         { text: data.dummyOption1, isCorrect: false },
         { text: data.dummyOption2, isCorrect: false },
         { text: data.dummyOption3, isCorrect: false }
-      ].filter(opt => opt.text); // 空のダミーを排除
+      ].filter(opt => opt.text); 
 
-      const shuffledOptions = shuffleArray(rawOptions);
+      // 毎回シャッフルする
+      data.shuffledOptions = shuffleArray(rawOptions);
 
       optionsContainer.innerHTML = '';
-      shuffledOptions.forEach((opt, i) => {
+      data.shuffledOptions.forEach((opt, i) => {
         const btn = document.createElement('button');
-        // 白背景、柔らかい影のカードスタイル
         btn.className = "option-card w-full p-5 bg-white border border-stone-100 shadow-soft rounded-2xl text-left font-medium text-stone-700 flex items-center space-x-4";
+        
+        // ★ dataset に「これが正解かどうか」のフラグを持たせる
+        btn.dataset.isCorrect = opt.isCorrect;
+        
         btn.innerHTML = `
-          <span class="w-8 h-8 rounded-full border border-stone-200 flex items-center justify-center text-xs font-serif text-stone-400 shrink-0 bg-stone-50">${String.fromCharCode(65 + i)}</span>
+          <span class="badge w-8 h-8 rounded-full border border-stone-200 flex items-center justify-center text-xs font-serif text-stone-400 shrink-0 bg-stone-50">${String.fromCharCode(65 + i)}</span>
           <span class="leading-relaxed">${opt.text}</span>
         `;
         btn.onclick = () => selectOption(btn, opt.isCorrect, data);
@@ -260,39 +262,44 @@
       });
     }
 
-    // 選択肢タップ時
     function selectOption(selectedBtn, isCorrect, data) {
       if (isAnswered) return;
       isAnswered = true;
 
+      // 履歴に正解/不正解を記録
+      scoreHistory[currentIndex] = isCorrect;
+      updateScoreDisplay();
+
       const buttons = optionsContainer.querySelectorAll('button');
+      
       buttons.forEach(btn => {
         btn.disabled = true;
-        btn.classList.add('opacity-50');
+        const badge = btn.querySelector('.badge');
+        
+        // ★修正: 不正解だった場合に「正解のボタン」を緑色で強調表示する
+        if (btn.dataset.isCorrect === "true") {
+          btn.classList.add('bg-emerald-50', 'border-emerald-200', 'text-correct', 'font-bold', 'opacity-100', 'shadow-md');
+          btn.classList.remove('bg-white', 'border-stone-100');
+          badge.classList.add('bg-emerald-100', 'border-emerald-300', 'text-emerald-700');
+        } else {
+          btn.classList.add('opacity-40'); // 正解以外のダミーは薄くする
+        }
       });
 
-      selectedBtn.classList.remove('opacity-50', 'bg-white', 'border-stone-100');
-      
-      const badge = selectedBtn.querySelector('span');
-
-      if (isCorrect) {
-        correctScore++;
-        correctCountElem.textContent = correctScore;
-        // 正解のスタイル（深緑）
-        selectedBtn.classList.add('bg-emerald-50', 'border-emerald-200', 'text-correct', 'font-bold');
-        badge.classList.add('bg-emerald-100', 'border-emerald-300', 'text-emerald-700');
-        
-        resultIcon.textContent = "✧";
-        resultText.textContent = "正解";
-        resultText.className = "font-serif font-bold text-xl tracking-widest text-correct";
-      } else {
-        // 不正解のスタイル（深紅）
-        selectedBtn.classList.add('bg-red-50', 'border-red-200', 'text-incorrect', 'font-bold');
+      // 選んだボタンが不正解だった場合のみ、選んだボタンを赤くする
+      if (!isCorrect) {
+        selectedBtn.classList.remove('opacity-40', 'bg-white', 'border-stone-100');
+        selectedBtn.classList.add('bg-red-50', 'border-red-200', 'text-incorrect', 'font-bold', 'opacity-100');
+        const badge = selectedBtn.querySelector('.badge');
         badge.classList.add('bg-red-100', 'border-red-300', 'text-red-700');
         
         resultIcon.textContent = "✦";
         resultText.textContent = "不正解";
         resultText.className = "font-serif font-bold text-xl tracking-widest text-incorrect";
+      } else {
+        resultIcon.textContent = "✧";
+        resultText.textContent = "正解";
+        resultText.className = "font-serif font-bold text-xl tracking-widest text-correct";
       }
 
       mountPhrase.textContent = data.mountPhrase;
@@ -311,13 +318,25 @@
       }, 100);
     }
 
-    // 地図検索へ飛ばす
+    // ★追加：前の問題に戻る処理
+    function goBack() {
+      if (currentIndex > 0) {
+        // 現在の問題のスコア履歴をリセット
+        scoreHistory[currentIndex] = null;
+        currentIndex--;
+        // 戻った先の履歴もリセット（再挑戦させるため）
+        scoreHistory[currentIndex] = null;
+        
+        loadQuestion(currentIndex);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    }
+
     function searchSpot() {
       const query = encodeURIComponent(currentSpotName);
       window.open(`https://www.google.com/maps/search/?api=1&query=${query}`, '_blank');
     }
 
-    // 次へ
     nextBtn.onclick = () => {
       currentIndex++;
       if (currentIndex < QUIZ_DATABASE.length) {
@@ -328,8 +347,8 @@
       }
     };
 
-    // 終了画面
     function showFinalResult() {
+      const correctScore = scoreHistory.filter(val => val === true).length;
       const rate = Math.round((correctScore / QUIZ_DATABASE.length) * 100);
       
       quizContainer.innerHTML = `
@@ -346,6 +365,7 @@
         </div>
       `;
       footerAction.classList.add('hidden');
+      backBtn.classList.add('hidden');
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
