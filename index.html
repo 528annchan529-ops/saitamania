@@ -71,6 +71,41 @@
       background: rgba(28, 25, 23, 0.4);
       backdrop-filter: blur(4px);
     }
+    /* 複数選択ドロップダウンのスクロールバー非表示 */
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;  
+      scrollbar-width: none;  
+    }
+    /* カスタムチェックボックス */
+    .custom-checkbox {
+      appearance: none;
+      width: 1.25rem;
+      height: 1.25rem;
+      border: 1px solid #D6D3D1;
+      border-radius: 0.25rem;
+      outline: none;
+      transition: all 0.2s ease-in-out;
+      position: relative;
+    }
+    .custom-checkbox:checked {
+      background-color: #831843;
+      border-color: #831843;
+    }
+    .custom-checkbox:checked::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) rotate(45deg);
+      width: 0.35rem;
+      height: 0.65rem;
+      border: solid white;
+      border-width: 0 2px 2px 0;
+      margin-top: -2px;
+    }
   </style>
 </head>
 <body class="text-ink font-sans min-h-screen flex flex-col selection:bg-accentLight selection:text-accent relative">
@@ -100,7 +135,7 @@
   <main class="flex-1 max-w-lg w-full mx-auto p-6 flex flex-col justify-center relative z-10">
     
     <!-- ==================== 開始画面 ==================== -->
-    <div id="startScreen" class="flex-1 flex flex-col justify-center items-center text-center fade-up w-full transition-all duration-300">
+    <div id="startScreen" class="flex-1 flex flex-col justify-center items-center text-center fade-up w-full transition-all duration-300 pb-10">
       <div class="absolute top-0 right-0 p-4">
         <button onclick="toggleDashboard()" class="p-2 text-stone-500 hover:text-accent transition-colors bg-white rounded-full shadow-soft border border-stone-100">
           <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
@@ -127,28 +162,65 @@
           </button>
         </div>
 
-        <!-- ★追加：探求の切り口（スコープ）選択 -->
+        <!-- 探求の切り口 -->
         <div class="space-y-2">
           <p class="text-xs font-bold text-stone-400 tracking-widest uppercase ml-1">探求の切り口</p>
           <div class="grid grid-cols-3 gap-2">
-            <button onclick="setScope('all')" id="scope-all" class="scope-btn py-2 border border-stone-200 rounded-lg text-xs font-serif bg-white transition-all ring-2 ring-accent border-accent text-accent font-bold bg-accentLight/30">
-              すべて
-            </button>
-            <button onclick="setScope('theme')" id="scope-theme" class="scope-btn py-2 border border-stone-200 rounded-lg text-xs font-serif bg-white text-stone-500 transition-all">
-              テーマ探求<br><span class="text-[9px] text-stone-400 font-sans leading-none">(系統地理)</span>
-            </button>
-            <button onclick="setScope('city')" id="scope-city" class="scope-btn py-2 border border-stone-200 rounded-lg text-xs font-serif bg-white text-stone-500 transition-all">
-              地域探求<br><span class="text-[9px] text-stone-400 font-sans leading-none">(地誌)</span>
-            </button>
+            <button onclick="setScope('all')" id="scope-all" class="scope-btn py-2 border border-stone-200 rounded-lg text-xs font-serif bg-white transition-all ring-2 ring-accent border-accent text-accent font-bold bg-accentLight/30">すべて</button>
+            <button onclick="setScope('theme')" id="scope-theme" class="scope-btn py-2 border border-stone-200 rounded-lg text-xs font-serif bg-white text-stone-500 transition-all">テーマ探求<br><span class="text-[9px] text-stone-400 font-sans leading-none">(系統地理)</span></button>
+            <button onclick="setScope('city')" id="scope-city" class="scope-btn py-2 border border-stone-200 rounded-lg text-xs font-serif bg-white text-stone-500 transition-all">地域探求<br><span class="text-[9px] text-stone-400 font-sans leading-none">(地誌)</span></button>
           </div>
         </div>
 
+        <!-- ★変更：複数選択対応のフィルターセクション -->
         <div id="filterSection" class="space-y-3 bg-white p-4 rounded-xl border border-stone-100 shadow-soft">
-          <p class="text-xs font-bold text-stone-400 tracking-widest uppercase mb-1">条件を絞る</p>
-          <select id="filterCategory" onchange="applyFilters()" class="w-full bg-stone-50 border border-stone-200 text-stone-700 text-sm rounded-lg p-2.5 outline-none font-serif"></select>
+          <p class="text-xs font-bold text-stone-400 tracking-widest uppercase mb-2">条件を絞る (複数選択可)</p>
+          
+          <!-- カテゴリ フィルター -->
+          <div class="relative">
+            <button onclick="toggleFilterMenu('catMenu')" class="w-full bg-stone-50 border border-stone-200 text-stone-700 text-sm rounded-lg p-2.5 font-serif text-left flex justify-between items-center transition-colors">
+              <span id="catLabel" class="truncate">すべてのカテゴリ</span>
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-stone-400 shrink-0"><polyline points="6 9 12 15 18 9"></polyline></svg>
+            </button>
+            <div id="catMenu" class="hidden absolute top-full left-0 w-full mt-1 bg-white border border-stone-200 rounded-lg shadow-lg z-20 overflow-hidden">
+              <div class="p-2 border-b border-stone-100 flex justify-between bg-stone-50">
+                <button onclick="selectAll('cat', true)" class="text-[10px] text-accent font-bold px-2 py-1 bg-accentLight/50 rounded">すべて選択</button>
+                <button onclick="selectAll('cat', false)" class="text-[10px] text-stone-500 font-bold px-2 py-1 bg-stone-200 rounded">選択解除</button>
+              </div>
+              <div id="catOptionsList" class="max-h-48 overflow-y-auto p-2 space-y-1 no-scrollbar"></div>
+            </div>
+          </div>
+
           <div class="grid grid-cols-2 gap-3">
-            <select id="filterCity" onchange="applyFilters()" class="w-full bg-stone-50 border border-stone-200 text-stone-700 text-sm rounded-lg p-2.5 outline-none font-serif"></select>
-            <select id="filterDifficulty" onchange="applyFilters()" class="w-full bg-stone-50 border border-stone-200 text-stone-700 text-sm rounded-lg p-2.5 outline-none font-serif"></select>
+            <!-- 市町村 フィルター -->
+            <div class="relative">
+              <button onclick="toggleFilterMenu('cityMenu')" class="w-full bg-stone-50 border border-stone-200 text-stone-700 text-sm rounded-lg p-2.5 font-serif text-left flex justify-between items-center transition-colors">
+                <span id="cityLabel" class="truncate">すべての市町村</span>
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-stone-400 shrink-0"><polyline points="6 9 12 15 18 9"></polyline></svg>
+              </button>
+              <div id="cityMenu" class="hidden absolute top-full left-0 w-[200%] mt-1 bg-white border border-stone-200 rounded-lg shadow-lg z-20 overflow-hidden">
+                <div class="p-2 border-b border-stone-100 flex justify-between bg-stone-50">
+                  <button onclick="selectAll('city', true)" class="text-[10px] text-accent font-bold px-2 py-1 bg-accentLight/50 rounded">すべて選択</button>
+                  <button onclick="selectAll('city', false)" class="text-[10px] text-stone-500 font-bold px-2 py-1 bg-stone-200 rounded">選択解除</button>
+                </div>
+                <div id="cityOptionsList" class="max-h-48 overflow-y-auto p-2 space-y-1 no-scrollbar"></div>
+              </div>
+            </div>
+
+            <!-- 難易度 フィルター -->
+            <div class="relative">
+              <button onclick="toggleFilterMenu('difMenu')" class="w-full bg-stone-50 border border-stone-200 text-stone-700 text-sm rounded-lg p-2.5 font-serif text-left flex justify-between items-center transition-colors">
+                <span id="difLabel" class="truncate">すべての難易度</span>
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-stone-400 shrink-0"><polyline points="6 9 12 15 18 9"></polyline></svg>
+              </button>
+              <div id="difMenu" class="hidden absolute top-full right-0 w-[150%] mt-1 bg-white border border-stone-200 rounded-lg shadow-lg z-20 overflow-hidden">
+                <div class="p-2 border-b border-stone-100 flex justify-between bg-stone-50">
+                  <button onclick="selectAll('dif', true)" class="text-[10px] text-accent font-bold px-2 py-1 bg-accentLight/50 rounded">すべて選択</button>
+                  <button onclick="selectAll('dif', false)" class="text-[10px] text-stone-500 font-bold px-2 py-1 bg-stone-200 rounded">選択解除</button>
+                </div>
+                <div id="difOptionsList" class="max-h-48 overflow-y-auto p-2 space-y-1 no-scrollbar"></div>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -212,14 +284,13 @@
     </button>
   </div>
 
-  <!-- ==================== マイページ（ダッシュボード）モーダル ==================== -->
+  <!-- ==================== マイページ モーダル ==================== -->
   <div id="dashboardModal" class="fixed inset-0 z-50 hidden flex flex-col justify-end sm:justify-center items-center modal-overlay transition-opacity duration-300 opacity-0">
     <div class="bg-paper w-full max-w-md rounded-t-3xl sm:rounded-3xl shadow-2xl p-6 pb-12 sm:pb-6 transform translate-y-full sm:translate-y-0 transition-transform duration-300" id="dashboardContent">
       <div class="flex justify-between items-center mb-6 border-b border-stone-200 pb-4">
         <h2 class="font-serif text-xl font-bold tracking-widest text-ink">探求の記録</h2>
         <button onclick="toggleDashboard()" class="p-2 bg-stone-100 rounded-full text-stone-500 hover:text-ink"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
       </div>
-      <!-- マイページ中身（前回と同じ） -->
       <div class="space-y-6 overflow-y-auto max-h-[70vh] pr-2">
         <div>
           <h3 class="text-xs font-bold text-stone-400 tracking-widest uppercase mb-3">Today / 本日の記録</h3>
@@ -273,7 +344,7 @@
 
   <script>
     // ==============================================================
-    // ★ GASのウェブアプリURLをここに貼り付けてください
+    // ★ GASのウェブアプリURL
     // ==============================================================
     const API_URL = "https://script.google.com/macros/s/AKfycbzgKf5P9EZi9DACFiL9JWqXpFiBE6qDSgA2ATScYz5pALpMIvDYrknPuieU4FMn-0k/exec";
 
@@ -283,7 +354,7 @@
     
     // 状態管理
     let currentMode = 'all'; 
-    let currentScope = 'all'; // ★ 'all', 'theme'(SK), 'city'(SC)
+    let currentScope = 'all'; 
     let selectedCount = 10; 
     let currentIndex = 0;
     let scoreHistory = []; 
@@ -291,233 +362,152 @@
     let currentSpotName = ""; 
     let quizStartTime = null; 
 
+    // 複数選択用の状態保持
+    let selectedCategories = new Set();
+    let selectedCities = new Set();
+    let selectedDifficulties = new Set();
+
     const startScreen = document.getElementById('startScreen');
     const mainHeader = document.getElementById('mainHeader');
+    const headerLogo = document.getElementById('headerLogo');
     const quizScreen = document.getElementById('quizScreen');
-    const modeTag = document.getElementById('modeTag');
-    const quizProgressBadge = document.getElementById('quizProgressBadge');
     const loadingIndicator = document.getElementById('loadingIndicator');
 
+    // マイページ用
     const STATS_KEY = 'saitamania_stats';
     const WRONG_KEY = 'saitamania_wrong_quizzes';
     const CLEARED_KEY = 'saitamania_cleared_quizzes';
-
     let userStats = {
-      todayDate: new Date().toLocaleDateString(),
-      todayAnswers: 0,
-      todayCorrects: 0,
-      todaySeconds: 0,
-      totalAnswers: 0,
-      totalCorrects: 0,
-      totalSeconds: 0
+      todayDate: new Date().toLocaleDateString(), todayAnswers: 0, todayCorrects: 0, todaySeconds: 0,
+      totalAnswers: 0, totalCorrects: 0, totalSeconds: 0
     };
     let WRONG_QUIZ_IDS = [];
     let CLEARED_QUIZ_IDS = [];
 
-    function loadStats() {
-      try { WRONG_QUIZ_IDS = JSON.parse(localStorage.getItem(WRONG_KEY)) || []; } catch(e){}
-      try { CLEARED_QUIZ_IDS = JSON.parse(localStorage.getItem(CLEARED_KEY)) || []; } catch(e){}
-      try { 
-        const data = localStorage.getItem(STATS_KEY);
-        if (data) {
-          const parsed = JSON.parse(data);
-          if (parsed.todayDate !== new Date().toLocaleDateString()) {
-            parsed.todayDate = new Date().toLocaleDateString();
-            parsed.todayAnswers = 0;
-            parsed.todayCorrects = 0;
-            parsed.todaySeconds = 0;
-          }
-          userStats = { ...userStats, ...parsed };
+    // --- メニュー外のタップでメニューを閉じる処理 ---
+    document.addEventListener('click', function(e) {
+      const menus = ['catMenu', 'cityMenu', 'difMenu'];
+      menus.forEach(id => {
+        const menu = document.getElementById(id);
+        if (menu && !menu.classList.contains('hidden') && !e.target.closest(`#${id}`) && !e.target.closest(`button[onclick="toggleFilterMenu('${id}')"]`)) {
+          menu.classList.add('hidden');
         }
-      } catch(e) {}
-      
-      const wrongBadge = document.getElementById('wrongBadge');
-      if (WRONG_QUIZ_IDS.length > 0) {
-        wrongBadge.textContent = WRONG_QUIZ_IDS.length;
-        wrongBadge.classList.remove('hidden');
-      } else { wrongBadge.classList.add('hidden'); }
-    }
-
-    function saveStats() {
-      localStorage.setItem(STATS_KEY, JSON.stringify(userStats));
-      localStorage.setItem(WRONG_KEY, JSON.stringify(WRONG_QUIZ_IDS));
-      localStorage.setItem(CLEARED_KEY, JSON.stringify(CLEARED_QUIZ_IDS));
-    }
-
-    function recordAnswer(quizId, isCorrect) {
-      userStats.todayAnswers++;
-      userStats.totalAnswers++;
-      if (isCorrect) {
-        userStats.todayCorrects++;
-        userStats.totalCorrects++;
-        WRONG_QUIZ_IDS = WRONG_QUIZ_IDS.filter(id => id !== quizId);
-        if (!CLEARED_QUIZ_IDS.includes(quizId)) CLEARED_QUIZ_IDS.push(quizId);
-      } else {
-        if (!WRONG_QUIZ_IDS.includes(quizId)) WRONG_QUIZ_IDS.push(quizId);
-      }
-      saveStats();
-      const wrongBadge = document.getElementById('wrongBadge');
-      wrongBadge.textContent = WRONG_QUIZ_IDS.length;
-      wrongBadge.classList.toggle('hidden', WRONG_QUIZ_IDS.length === 0);
-    }
-
-    function recordTime() {
-      if (!quizStartTime) return;
-      const elapsedSeconds = Math.floor((new Date() - quizStartTime) / 1000);
-      userStats.todaySeconds += elapsedSeconds;
-      userStats.totalSeconds += elapsedSeconds;
-      saveStats();
-      quizStartTime = null; 
-    }
-
-    function toggleDashboard() {
-      const modal = document.getElementById('dashboardModal');
-      const content = document.getElementById('dashboardContent');
-      if (modal.classList.contains('hidden')) {
-        updateDashboardUI();
-        modal.classList.remove('hidden');
-        setTimeout(() => {
-          modal.classList.remove('opacity-0');
-          content.classList.remove('translate-y-full');
-        }, 10);
-      } else {
-        modal.classList.add('opacity-0');
-        content.classList.add('translate-y-full');
-        setTimeout(() => { modal.classList.add('hidden'); }, 300);
-      }
-    }
-
-    function updateDashboardUI() {
-      document.getElementById('dashTodayAnswers').textContent = userStats.todayAnswers;
-      const todayRate = userStats.todayAnswers > 0 ? Math.round((userStats.todayCorrects / userStats.todayAnswers) * 100) : 0;
-      document.getElementById('dashTodayRate').textContent = todayRate;
-      
-      const tMin = Math.floor(userStats.todaySeconds / 60);
-      const tSec = userStats.todaySeconds % 60;
-      document.getElementById('dashTodayTime').textContent = tMin > 0 ? `${tMin}分${tSec}秒` : `${tSec}秒`;
-
-      document.getElementById('dashTotalAnswers').textContent = userStats.totalAnswers;
-      document.getElementById('dashTotalCorrects').textContent = userStats.totalCorrects;
-      document.getElementById('dashTotalWrongs').textContent = userStats.totalAnswers - userStats.totalCorrects;
-      
-      const hStr = (userStats.totalSeconds / 3600).toFixed(1);
-      document.getElementById('dashTotalTime').textContent = hStr;
-
-      const totalQ = ALL_QUIZ_DATA.length;
-      const clearedQ = CLEARED_QUIZ_IDS.length;
-      const progRate = totalQ > 0 ? Math.floor((clearedQ / totalQ) * 100) : 0;
-      
-      document.getElementById('dashTotalQuizzes').textContent = totalQ;
-      document.getElementById('dashClearedCount').textContent = clearedQ;
-      document.getElementById('dashProgressRate').textContent = progRate;
-      document.getElementById('dashProgressBar').style.width = `${progRate}%`;
-    }
-
-    async function initApp() {
-      loadStats();
-      try {
-        const response = await fetch(API_URL);
-        if (!response.ok) throw new Error(`HTTP Error: ${response.status}`);
-        
-        const data = await response.json();
-        if (data.error) throw new Error(`API Error: ${data.error}`);
-
-        if (data && data.length > 0) {
-          ALL_QUIZ_DATA = data;
-          loadingIndicator.classList.add('hidden');
-          document.getElementById('startMenu').classList.remove('hidden');
-          mainHeader.classList.remove('hidden'); 
-          
-          populateFilters(ALL_QUIZ_DATA); // 初期状態のプルダウン作成
-          applyFilters();
-        } else {
-          loadingIndicator.textContent = "データベースに問題がありません。";
-        }
-      } catch (error) {
-        console.error("Initialization Error:", error);
-        loadingIndicator.innerHTML = `<span class="text-xs text-red-600 font-sans leading-normal block">読み込み失敗:<br>${error.message}</span>`;
-      }
-    }
-
-    // ★追加：スコープ（SK/SC）に応じてプルダウンの中身を再生成する
-    function populateFilters(targetData) {
-      const catSelect = document.getElementById('filterCategory');
-      const citySelect = document.getElementById('filterCity');
-      const difSelect = document.getElementById('filterDifficulty');
-      
-      // 現在の選択値を保存
-      const currentCat = catSelect.value || 'all';
-      const currentCity = citySelect.value || 'all';
-      const currentDif = difSelect.value || 'all';
-
-      // 一旦クリア
-      catSelect.innerHTML = '<option value="all">すべてのカテゴリ</option>';
-      citySelect.innerHTML = '<option value="all">すべての市町村</option>';
-      difSelect.innerHTML = '<option value="all">すべての難易度</option>';
-
-      [...new Set(targetData.map(q=>q.category))].filter(Boolean).forEach(c => catSelect.add(new Option(c, c)));
-      [...new Set(targetData.map(q=>q.city))].filter(Boolean).forEach(c => citySelect.add(new Option(c, c)));
-      [...new Set(targetData.map(q=>q.difficulty))].filter(Boolean).forEach(d => difSelect.add(new Option(d, d)));
-
-      // 以前の選択値が存在すれば復元
-      if (Array.from(catSelect.options).some(o => o.value === currentCat)) catSelect.value = currentCat;
-      if (Array.from(citySelect.options).some(o => o.value === currentCity)) citySelect.value = currentCity;
-      if (Array.from(difSelect.options).some(o => o.value === currentDif)) difSelect.value = currentDif;
-    }
-
-    window.switchMode = function(mode) {
-      currentMode = mode;
-      const allBtn = document.getElementById('modeAllBtn');
-      const revBtn = document.getElementById('modeReviewBtn');
-      
-      if (mode === 'all') {
-        allBtn.className = "flex-1 py-2.5 rounded-lg transition-all bg-white text-ink shadow-soft text-center";
-        revBtn.className = "flex-1 py-2.5 rounded-lg transition-all text-subtle hover:text-ink relative text-center";
-      } else {
-        revBtn.className = "flex-1 py-2.5 rounded-lg transition-all bg-white text-accent font-bold shadow-soft relative text-center";
-        allBtn.className = "flex-1 py-2.5 rounded-lg transition-all text-subtle hover:text-ink text-center";
-      }
-      applyFilters();
-    }
-
-    // ★追加：切り口（スコープ）の変更処理
-    window.setScope = function(scope) {
-      currentScope = scope;
-      document.querySelectorAll('.scope-btn').forEach(btn => {
-        btn.className = "scope-btn py-2 border border-stone-200 rounded-lg text-xs font-serif bg-white text-stone-500 transition-all";
       });
-      const selectedBtn = document.getElementById(`scope-${scope}`);
-      selectedBtn.className = "scope-btn py-2 border border-stone-200 rounded-lg text-xs font-serif bg-white transition-all ring-2 ring-accent border-accent text-accent font-bold bg-accentLight/30";
+    });
+
+    window.toggleFilterMenu = function(menuId) {
+      const menu = document.getElementById(menuId);
+      const isHidden = menu.classList.contains('hidden');
       
-      // スコープで絞ったデータを元にプルダウンを作り直す
-      let scopedData = ALL_QUIZ_DATA;
-      if (scope === 'theme') scopedData = ALL_QUIZ_DATA.filter(q => q.knowledgeId && q.knowledgeId.startsWith('SK'));
-      if (scope === 'city') scopedData = ALL_QUIZ_DATA.filter(q => q.knowledgeId && q.knowledgeId.startsWith('SC'));
+      // 開く前に他のメニューを閉じる
+      ['catMenu', 'cityMenu', 'difMenu'].forEach(id => {
+        if(id !== menuId) document.getElementById(id).classList.add('hidden');
+      });
       
-      populateFilters(scopedData);
+      if (isHidden) menu.classList.remove('hidden');
+      else menu.classList.add('hidden');
+    }
+
+    // --- フィルターUIの生成 ---
+    function populateMultiFilters(targetData) {
+      const catList = document.getElementById('catOptionsList');
+      const cityList = document.getElementById('cityOptionsList');
+      const difList = document.getElementById('difOptionsList');
+
+      const categories = [...new Set(targetData.map(q=>q.category))].filter(Boolean);
+      const cities = [...new Set(targetData.map(q=>q.city))].filter(Boolean);
+      const difficulties = [...new Set(targetData.map(q=>q.difficulty))].filter(Boolean);
+
+      // 初回ならすべてを選択状態にする
+      if (selectedCategories.size === 0) categories.forEach(c => selectedCategories.add(c));
+      if (selectedCities.size === 0) cities.forEach(c => selectedCities.add(c));
+      if (selectedDifficulties.size === 0) difficulties.forEach(c => selectedDifficulties.add(c));
+
+      // HTML生成ヘルパー
+      const renderCheckbox = (type, val, isChecked) => `
+        <label class="flex items-center space-x-2 p-2 hover:bg-stone-100 rounded cursor-pointer transition-colors">
+          <input type="checkbox" class="custom-checkbox" value="${val}" onchange="handleCheckboxChange('${type}', this.value, this.checked)" ${isChecked ? 'checked' : ''}>
+          <span class="text-xs text-stone-700 font-medium select-none truncate">${val}</span>
+        </label>
+      `;
+
+      catList.innerHTML = categories.map(c => renderCheckbox('cat', c, selectedCategories.has(c))).join('');
+      cityList.innerHTML = cities.map(c => renderCheckbox('city', c, selectedCities.has(c))).join('');
+      difList.innerHTML = difficulties.map(c => renderCheckbox('dif', c, selectedDifficulties.has(c))).join('');
+
+      updateFilterLabels(categories.length, cities.length, difficulties.length);
+    }
+
+    window.handleCheckboxChange = function(type, value, isChecked) {
+      let targetSet = type === 'cat' ? selectedCategories : type === 'city' ? selectedCities : selectedDifficulties;
+      if (isChecked) targetSet.add(value);
+      else targetSet.delete(value);
+      
+      updateFilterLabels();
       applyFilters();
+    }
+
+    window.selectAll = function(type, isCheck) {
+      let targetSet = type === 'cat' ? selectedCategories : type === 'city' ? selectedCities : selectedDifficulties;
+      const listId = type === 'cat' ? 'catOptionsList' : type === 'city' ? 'cityOptionsList' : 'difOptionsList';
+      const inputs = document.getElementById(listId).querySelectorAll('input[type="checkbox"]');
+      
+      if (!isCheck) targetSet.clear();
+      
+      inputs.forEach(input => {
+        input.checked = isCheck;
+        if (isCheck) targetSet.add(input.value);
+      });
+      
+      updateFilterLabels();
+      applyFilters();
+    }
+
+    function updateFilterLabels(totalCats, totalCities, totalDifs) {
+      const getLabelText = (set, total) => {
+        if (set.size === 0) return "未選択";
+        if (total && set.size === total) return "すべて選択中";
+        if (set.size === Array.from(set).length) {
+          // 動的更新時の簡易判定: 要素数が複数なら「〇項目選択中」
+          if (set.size === 1) return Array.from(set)[0];
+          return `${set.size}項目 選択中`;
+        }
+        return "選択中";
+      };
+
+      document.getElementById('catLabel').textContent = getLabelText(selectedCategories);
+      document.getElementById('cityLabel').textContent = getLabelText(selectedCities);
+      document.getElementById('difLabel').textContent = getLabelText(selectedDifficulties);
+      
+      // エラー回避のため色付け
+      const colorLabel = (id, set) => {
+        const el = document.getElementById(id);
+        if (set.size === 0) el.classList.add('text-red-500', 'font-bold');
+        else el.classList.remove('text-red-500', 'font-bold');
+      };
+      colorLabel('catLabel', selectedCategories);
+      colorLabel('cityLabel', selectedCities);
+      colorLabel('difLabel', selectedDifficulties);
     }
 
     window.applyFilters = function() {
-      // 1. スコープ（SK/SC）で絞る
+      // 1. スコープで絞る
       let pool = ALL_QUIZ_DATA;
       if (currentScope === 'theme') pool = pool.filter(q => q.knowledgeId && q.knowledgeId.startsWith('SK'));
       if (currentScope === 'city') pool = pool.filter(q => q.knowledgeId && q.knowledgeId.startsWith('SC'));
 
-      // 2. モード（通常/復習）で絞る
+      // 2. モードで絞る
       if (currentMode === 'review') pool = pool.filter(q => WRONG_QUIZ_IDS.includes(q.quizId));
       
-      // 3. プルダウンで絞る
-      const cat = document.getElementById('filterCategory').value;
-      const cty = document.getElementById('filterCity').value;
-      const dif = document.getElementById('filterDifficulty').value;
-
-      if (cat !== 'all') pool = pool.filter(q => q.category === cat);
-      if (cty !== 'all') pool = pool.filter(q => q.city === cty);
-      if (dif !== 'all') pool = pool.filter(q => q.difficulty === dif);
+      // 3. ★ 複数選択のOR検索フィルター
+      pool = pool.filter(q => {
+        const matchCat = selectedCategories.size === 0 || selectedCategories.has(q.category);
+        const matchCity = selectedCities.size === 0 || selectedCities.has(q.city);
+        const matchDif = selectedDifficulties.size === 0 || selectedDifficulties.has(q.difficulty);
+        return matchCat && matchCity && matchDif;
+      });
 
       FILTERED_DATA = pool;
-
       const actBtn = document.getElementById('startActionBtn');
       const cSec = document.getElementById('countSelectorSection');
       
@@ -549,6 +539,132 @@
       }
     }
 
+    // --- その他基本ロジック（前バージョンと同等） ---
+    function loadStats() {
+      try { WRONG_QUIZ_IDS = JSON.parse(localStorage.getItem(WRONG_KEY)) || []; } catch(e){}
+      try { CLEARED_QUIZ_IDS = JSON.parse(localStorage.getItem(CLEARED_KEY)) || []; } catch(e){}
+      try { 
+        const data = localStorage.getItem(STATS_KEY);
+        if (data) {
+          const parsed = JSON.parse(data);
+          if (parsed.todayDate !== new Date().toLocaleDateString()) {
+            parsed.todayDate = new Date().toLocaleDateString();
+            parsed.todayAnswers = 0; parsed.todayCorrects = 0; parsed.todaySeconds = 0;
+          }
+          userStats = { ...userStats, ...parsed };
+        }
+      } catch(e) {}
+      
+      const wrongBadge = document.getElementById('wrongBadge');
+      if (WRONG_QUIZ_IDS.length > 0) {
+        wrongBadge.textContent = WRONG_QUIZ_IDS.length;
+        wrongBadge.classList.remove('hidden');
+      } else { wrongBadge.classList.add('hidden'); }
+    }
+
+    function saveStats() {
+      localStorage.setItem(STATS_KEY, JSON.stringify(userStats));
+      localStorage.setItem(WRONG_KEY, JSON.stringify(WRONG_QUIZ_IDS));
+      localStorage.setItem(CLEARED_KEY, JSON.stringify(CLEARED_QUIZ_IDS));
+    }
+
+    function recordAnswer(quizId, isCorrect) {
+      userStats.todayAnswers++; userStats.totalAnswers++;
+      if (isCorrect) {
+        userStats.todayCorrects++; userStats.totalCorrects++;
+        WRONG_QUIZ_IDS = WRONG_QUIZ_IDS.filter(id => id !== quizId);
+        if (!CLEARED_QUIZ_IDS.includes(quizId)) CLEARED_QUIZ_IDS.push(quizId);
+      } else {
+        if (!WRONG_QUIZ_IDS.includes(quizId)) WRONG_QUIZ_IDS.push(quizId);
+      }
+      saveStats();
+      const wb = document.getElementById('wrongBadge');
+      wb.textContent = WRONG_QUIZ_IDS.length;
+      wb.classList.toggle('hidden', WRONG_QUIZ_IDS.length === 0);
+    }
+
+    function recordTime() {
+      if (!quizStartTime) return;
+      const elapsed = Math.floor((new Date() - quizStartTime) / 1000);
+      userStats.todaySeconds += elapsed; userStats.totalSeconds += elapsed;
+      saveStats(); quizStartTime = null; 
+    }
+
+    function toggleDashboard() {
+      const modal = document.getElementById('dashboardModal');
+      const content = document.getElementById('dashboardContent');
+      if (modal.classList.contains('hidden')) {
+        updateDashboardUI();
+        modal.classList.remove('hidden');
+        setTimeout(() => { modal.classList.remove('opacity-0'); content.classList.remove('translate-y-full'); }, 10);
+      } else {
+        modal.classList.add('opacity-0'); content.classList.add('translate-y-full');
+        setTimeout(() => { modal.classList.add('hidden'); }, 300);
+      }
+    }
+
+    function updateDashboardUI() {
+      document.getElementById('dashTodayAnswers').textContent = userStats.todayAnswers;
+      document.getElementById('dashTodayRate').textContent = userStats.todayAnswers > 0 ? Math.round((userStats.todayCorrects / userStats.todayAnswers) * 100) : 0;
+      const tMin = Math.floor(userStats.todaySeconds / 60); const tSec = userStats.todaySeconds % 60;
+      document.getElementById('dashTodayTime').textContent = tMin > 0 ? `${tMin}分${tSec}秒` : `${tSec}秒`;
+
+      document.getElementById('dashTotalAnswers').textContent = userStats.totalAnswers;
+      document.getElementById('dashTotalCorrects').textContent = userStats.totalCorrects;
+      document.getElementById('dashTotalWrongs').textContent = userStats.totalAnswers - userStats.totalCorrects;
+      document.getElementById('dashTotalTime').textContent = (userStats.totalSeconds / 3600).toFixed(1);
+
+      const totalQ = ALL_QUIZ_DATA.length; const clearedQ = CLEARED_QUIZ_IDS.length;
+      const progRate = totalQ > 0 ? Math.floor((clearedQ / totalQ) * 100) : 0;
+      document.getElementById('dashTotalQuizzes').textContent = totalQ;
+      document.getElementById('dashClearedCount').textContent = clearedQ;
+      document.getElementById('dashProgressRate').textContent = progRate;
+      document.getElementById('dashProgressBar').style.width = `${progRate}%`;
+    }
+
+    async function initApp() {
+      loadStats();
+      try {
+        const response = await fetch(API_URL);
+        if (!response.ok) throw new Error(`HTTP Error`);
+        const data = await response.json();
+        if (data.error) throw new Error(`API Error: ${data.error}`);
+
+        if (data && data.length > 0) {
+          ALL_QUIZ_DATA = data;
+          loadingIndicator.classList.add('hidden');
+          document.getElementById('startMenu').classList.remove('hidden');
+          
+          populateMultiFilters(ALL_QUIZ_DATA); 
+          applyFilters();
+        } else {
+          loadingIndicator.textContent = "データベースに問題がありません。";
+        }
+      } catch (error) {
+        loadingIndicator.textContent = "読み込みエラーが発生しました。URLを確認してください。";
+      }
+    }
+
+    window.switchMode = function(mode) {
+      currentMode = mode;
+      document.getElementById('modeAllBtn').className = mode === 'all' ? "flex-1 py-2.5 rounded-lg transition-all bg-white text-ink shadow-soft text-center" : "flex-1 py-2.5 rounded-lg transition-all text-subtle hover:text-ink text-center";
+      document.getElementById('modeReviewBtn').className = mode === 'review' ? "flex-1 py-2.5 rounded-lg transition-all bg-white text-accent font-bold shadow-soft relative text-center" : "flex-1 py-2.5 rounded-lg transition-all text-subtle hover:text-ink relative text-center";
+      applyFilters();
+    }
+
+    window.setScope = function(scope) {
+      currentScope = scope;
+      document.querySelectorAll('.scope-btn').forEach(btn => btn.className = "scope-btn py-2 border border-stone-200 rounded-lg text-xs font-serif bg-white text-stone-500 transition-all");
+      document.getElementById(`scope-${scope}`).className = "scope-btn py-2 border border-stone-200 rounded-lg text-xs font-serif bg-white transition-all ring-2 ring-accent border-accent text-accent font-bold bg-accentLight/30";
+      
+      let scopedData = ALL_QUIZ_DATA;
+      if (scope === 'theme') scopedData = ALL_QUIZ_DATA.filter(q => q.knowledgeId && q.knowledgeId.startsWith('SK'));
+      if (scope === 'city') scopedData = ALL_QUIZ_DATA.filter(q => q.knowledgeId && q.knowledgeId.startsWith('SC'));
+      
+      populateMultiFilters(scopedData);
+      applyFilters();
+    }
+
     window.selectCount = function(count) {
       selectedCount = count;
       document.querySelectorAll('.count-btn').forEach(b => b.className = "count-btn py-3 border border-stone-200 rounded-xl font-serif text-xs text-stone-500 bg-white transition-all");
@@ -560,9 +676,13 @@
       document.getElementById('totalCount').textContent = QUIZ_DATABASE.length;
       scoreHistory = new Array(QUIZ_DATABASE.length).fill(null);
       
-      modeTag.textContent = currentMode === 'all' ? '通常探求' : '復習探求';
-      modeTag.classList.remove('hidden');
-      quizProgressBadge.classList.remove('hidden');
+      document.getElementById('modeTag').textContent = currentMode === 'all' ? '通常探求' : '復習探求';
+      document.getElementById('modeTag').classList.remove('hidden');
+      document.getElementById('quizProgressBadge').classList.remove('hidden');
+
+      mainHeader.classList.add('glass-header', 'border-stone-200');
+      mainHeader.classList.remove('border-transparent');
+      headerLogo.classList.remove('hidden');
 
       startScreen.classList.add('hidden');
       quizScreen.classList.remove('hidden');
@@ -572,31 +692,22 @@
       loadQuestion(0);
     }
 
-    window.goHome = function() {
-      if (quizStartTime) recordTime(); 
-      location.reload();
-    }
+    window.goHome = function() { if (quizStartTime) recordTime(); location.reload(); }
 
     function loadQuestion(index) {
-      currentIndex = index;
-      isAnswered = false;
+      currentIndex = index; isAnswered = false;
       document.getElementById('explanationArea').classList.add('hidden');
       document.getElementById('footerAction').classList.add('hidden');
-      
       document.getElementById('backBtn').classList.toggle('hidden', index === 0);
       document.getElementById('correctCount').textContent = scoreHistory.filter(Boolean).length;
 
       const data = QUIZ_DATABASE[index];
-      
-      // ★追加：スコープのバッジ表示
       let scopeLabel = "";
       if (data.knowledgeId && data.knowledgeId.startsWith('SK')) scopeLabel = "テーマ(SK)";
       else if (data.knowledgeId && data.knowledgeId.startsWith('SC')) scopeLabel = "地域(SC)";
       
       const sBadge = document.getElementById('scopeBadge');
-      sBadge.textContent = scopeLabel;
-      sBadge.style.display = scopeLabel ? 'inline-block' : 'none';
-
+      sBadge.textContent = scopeLabel; sBadge.style.display = scopeLabel ? 'inline-block' : 'none';
       document.getElementById('categoryBadge').textContent = data.category || "未分類";
       document.getElementById('categoryBadge').style.display = data.category ? 'inline-block' : 'none';
       document.getElementById('cityBadge').textContent = data.city || "埼玉全域";
@@ -605,128 +716,80 @@
       
       const qt = document.getElementById('questionText');
       qt.innerHTML = `Q${index + 1}.<br>${data.question}`;
-      qt.classList.remove('fade-up-delay-1', 'fade-up');
-      void qt.offsetWidth; qt.classList.add('fade-up', 'fade-up-delay-1');
+      qt.classList.remove('fade-up-delay-1', 'fade-up'); void qt.offsetWidth; qt.classList.add('fade-up', 'fade-up-delay-1');
 
-      const rawOptions = [
-        { text: data.correctAnswer, isCorrect: true },
-        { text: data.dummyOption1, isCorrect: false },
-        { text: data.dummyOption2, isCorrect: false },
-        { text: data.dummyOption3, isCorrect: false }
-      ].filter(opt => opt.text); 
-
-      const ops = document.getElementById('optionsContainer');
-      ops.innerHTML = '';
-      shuffleArray(rawOptions).forEach((opt, i) => {
+      const rawOps = [{text:data.correctAnswer,isCorrect:true}, {text:data.dummyOption1,isCorrect:false}, {text:data.dummyOption2,isCorrect:false}, {text:data.dummyOption3,isCorrect:false}].filter(o=>o.text);
+      const ops = document.getElementById('optionsContainer'); ops.innerHTML = '';
+      shuffleArray(rawOps).forEach((opt, i) => {
         const btn = document.createElement('button');
         btn.className = "fade-up fade-up-delay-2 option-card w-full p-5 bg-white border border-stone-100 shadow-soft rounded-2xl text-left font-medium text-stone-700 flex items-center space-x-4";
         btn.dataset.isCorrect = opt.isCorrect;
         btn.innerHTML = `<span class="badge w-8 h-8 rounded-full border border-stone-200 flex items-center justify-center text-xs font-serif text-stone-400 shrink-0 bg-stone-50">${String.fromCharCode(65 + i)}</span><span class="leading-relaxed">${opt.text}</span>`;
-        btn.onclick = () => selectOption(btn, opt.isCorrect, data);
-        ops.appendChild(btn);
+        btn.onclick = () => selectOption(btn, opt.isCorrect, data); ops.appendChild(btn);
       });
     }
 
-    function selectOption(selectedBtn, isCorrect, data) {
-      if (isAnswered) return;
-      isAnswered = true;
-
-      scoreHistory[currentIndex] = isCorrect;
-      document.getElementById('correctCount').textContent = scoreHistory.filter(Boolean).length;
+    function selectOption(btn, isCorrect, data) {
+      if (isAnswered) return; isAnswered = true;
+      scoreHistory[currentIndex] = isCorrect; document.getElementById('correctCount').textContent = scoreHistory.filter(Boolean).length;
       recordAnswer(data.quizId, isCorrect);
 
-      document.querySelectorAll('#optionsContainer button').forEach(btn => {
-        btn.disabled = true;
-        if (btn.dataset.isCorrect === "true") {
-          btn.classList.add('bg-emerald-50', 'border-emerald-200', 'text-correct', 'font-bold', 'opacity-100');
-          btn.classList.remove('bg-white');
-          btn.querySelector('.badge').classList.add('bg-emerald-100', 'border-emerald-300', 'text-emerald-700');
-        } else {
-          btn.classList.add('opacity-40');
-        }
+      document.querySelectorAll('#optionsContainer button').forEach(b => {
+        b.disabled = true;
+        if (b.dataset.isCorrect === "true") {
+          b.classList.add('bg-emerald-50', 'border-emerald-200', 'text-correct', 'font-bold', 'opacity-100'); b.classList.remove('bg-white');
+          b.querySelector('.badge').classList.add('bg-emerald-100', 'border-emerald-300', 'text-emerald-700');
+        } else b.classList.add('opacity-40');
       });
 
-      const resI = document.getElementById('resultIcon');
-      const resT = document.getElementById('resultText');
+      const resI = document.getElementById('resultIcon'); const resT = document.getElementById('resultText');
       if (!isCorrect) {
-        selectedBtn.classList.remove('opacity-40', 'bg-white');
-        selectedBtn.classList.add('bg-red-50', 'border-red-200', 'text-incorrect', 'font-bold', 'opacity-100');
-        selectedBtn.querySelector('.badge').classList.add('bg-red-100', 'border-red-300', 'text-red-700');
+        btn.classList.remove('opacity-40', 'bg-white'); btn.classList.add('bg-red-50', 'border-red-200', 'text-incorrect', 'font-bold', 'opacity-100');
+        btn.querySelector('.badge').classList.add('bg-red-100', 'border-red-300', 'text-red-700');
         resI.textContent = "✦"; resT.textContent = "不正解"; resT.className = "font-serif font-bold text-xl tracking-widest text-incorrect";
       } else {
         resI.textContent = "✧"; resT.textContent = "正解"; resT.className = "font-serif font-bold text-xl tracking-widest text-correct";
       }
 
-      document.getElementById('mountPhrase').textContent = data.mountPhrase;
-      document.getElementById('explanationText').textContent = data.explanation;
-      currentSpotName = data.spot || "埼玉県";
-      document.getElementById('spotName').textContent = currentSpotName;
-
-      const exp = document.getElementById('explanationArea');
-      exp.classList.remove('hidden'); exp.classList.add('fade-up');
+      document.getElementById('mountPhrase').textContent = data.mountPhrase; document.getElementById('explanationText').textContent = data.explanation;
+      currentSpotName = data.spot || "埼玉県"; document.getElementById('spotName').textContent = currentSpotName;
+      
+      const exp = document.getElementById('explanationArea'); exp.classList.remove('hidden'); exp.classList.add('fade-up');
       document.getElementById('footerAction').classList.remove('hidden');
-
       setTimeout(() => { document.getElementById('footerAction').scrollIntoView({ behavior: 'smooth', block: 'end' }); }, 100);
     }
 
     window.goBack = function() {
       if (currentIndex > 0) {
-        const prevWasCorrect = scoreHistory[currentIndex - 1];
-        if (prevWasCorrect) {
-          userStats.todayCorrects = Math.max(0, userStats.todayCorrects - 1);
-          userStats.totalCorrects = Math.max(0, userStats.totalCorrects - 1);
-        }
-        userStats.todayAnswers = Math.max(0, userStats.todayAnswers - 1);
-        userStats.totalAnswers = Math.max(0, userStats.totalAnswers - 1);
-        
-        scoreHistory[currentIndex - 1] = null;
-        loadQuestion(currentIndex - 1);
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+        if (scoreHistory[currentIndex - 1]) { userStats.todayCorrects--; userStats.totalCorrects--; }
+        userStats.todayAnswers--; userStats.totalAnswers--;
+        scoreHistory[currentIndex - 1] = null; loadQuestion(currentIndex - 1); window.scrollTo({ top: 0, behavior: 'smooth' });
       }
     }
 
-    window.searchSpot = function() {
-      window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(currentSpotName)}`, '_blank');
-    }
+    window.searchSpot = function() { window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(currentSpotName)}`, '_blank'); }
 
     document.getElementById('nextBtn').onclick = () => {
-      if (currentIndex + 1 < QUIZ_DATABASE.length) {
-        loadQuestion(currentIndex + 1);
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-      } else {
-        recordTime(); 
-        showFinalResult();
-      }
+      if (currentIndex + 1 < QUIZ_DATABASE.length) { loadQuestion(currentIndex + 1); window.scrollTo({ top: 0, behavior: 'smooth' }); } 
+      else { recordTime(); showFinalResult(); }
     };
 
     function showFinalResult() {
-      const corrects = scoreHistory.filter(Boolean).length;
-      const rate = Math.round((corrects / QUIZ_DATABASE.length) * 100);
-      
+      const corrects = scoreHistory.filter(Boolean).length; const rate = Math.round((corrects / QUIZ_DATABASE.length) * 100);
       quizScreen.innerHTML = `
         <div class="fade-up bg-white border border-stone-100 rounded-3xl p-8 text-center shadow-float my-auto w-full">
           <p class="font-serif text-accent tracking-widest text-sm mb-6">探求の記録</p>
-          <div class="font-serif text-5xl text-ink mb-3 font-bold">
-            ${corrects} <span class="text-2xl text-stone-300 mx-1">/</span> ${QUIZ_DATABASE.length}
-          </div>
+          <div class="font-serif text-5xl text-ink mb-3 font-bold">${corrects} <span class="text-2xl text-stone-300 mx-1">/</span> ${QUIZ_DATABASE.length}</div>
           <p class="text-sm font-bold text-stone-500 mb-10 tracking-widest">正答率 ${rate}%</p>
-          <button onclick="goHome()" class="w-full py-4 bg-ink text-paper hover:bg-stone-800 rounded-xl font-serif tracking-widest transition-colors shadow-soft">
-            書を閉じ、再び探求する
-          </button>
-        </div>
-      `;
-      document.getElementById('footerAction').classList.add('hidden');
-      quizProgressBadge.classList.add('hidden');
-      document.getElementById('backBtn').classList.add('hidden');
+          <button onclick="goHome()" class="w-full py-4 bg-ink text-paper hover:bg-stone-800 rounded-xl font-serif tracking-widest transition-colors shadow-soft">書を閉じ、再び探求する</button>
+        </div>`;
+      document.getElementById('footerAction').classList.add('hidden'); document.getElementById('quizProgressBadge').classList.add('hidden'); document.getElementById('backBtn').classList.add('hidden');
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
     function shuffleArray(array) {
       const arr = [...array];
-      for (let i = arr.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [arr[i], arr[j]] = [arr[j], arr[i]];
-      }
+      for (let i = arr.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [arr[i], arr[j]] = [arr[j], arr[i]]; }
       return arr;
     }
 
