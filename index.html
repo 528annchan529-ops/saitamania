@@ -76,68 +76,85 @@
 <body class="text-ink font-sans min-h-screen flex flex-col selection:bg-accentLight selection:text-accent relative">
 
   <!-- ==================== ヘッダー ==================== -->
-  <!-- ★ 常に表示（hiddenを削除）し、背景のglass効果だけクイズ開始時に付与する作りに変更 -->
-  <header id="mainHeader" class="border-b border-transparent px-4 py-4 sticky top-0 z-40 flex items-center justify-between transition-colors duration-300">
+  <header id="mainHeader" class="glass-header border-b border-stone-200 px-4 py-4 sticky top-0 z-40 flex items-center justify-between hidden">
     <div class="flex items-center space-x-3">
       <button id="backBtn" class="hidden text-stone-500 hover:text-ink p-1" onclick="goBack()" aria-label="戻る">
         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
       </button>
-      <div id="headerLogo" class="hidden font-serif tracking-widest text-lg font-bold text-accent flex items-center space-x-2">
+      <div class="font-serif tracking-widest text-lg font-bold text-accent flex items-center space-x-2">
         <span onclick="goHome()" class="cursor-pointer">SAITAMANIA</span>
         <span id="modeTag" class="text-[10px] bg-stone-200 text-stone-600 px-2 py-0.5 rounded font-sans font-normal tracking-normal hidden"></span>
       </div>
     </div>
     
-    <!-- 右側：プログレス ＆ マイページボタン（★右上に１つのみ配置） -->
-    <div class="flex items-center space-x-3 ml-auto">
-      <div id="quizProgressBadge" class="hidden text-xs font-medium text-subtle tracking-widest border border-stone-200 rounded-full px-3 py-1 bg-white/50 shadow-sm">
+    <div class="flex items-center space-x-3">
+      <div id="quizProgressBadge" class="hidden text-xs font-medium text-subtle tracking-widest border border-stone-200 rounded-full px-3 py-1 bg-white/50">
         <span id="correctCount" class="text-ink font-bold">0</span> / <span id="totalCount">0</span>
       </div>
-      <button onclick="toggleDashboard()" class="p-2 text-stone-500 hover:text-accent transition-colors bg-white rounded-full shadow-soft border border-stone-100">
+      <button onclick="toggleDashboard()" class="p-1.5 text-stone-500 hover:text-accent transition-colors bg-stone-100 rounded-full border border-stone-200">
         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
       </button>
     </div>
   </header>
 
-  <main class="flex-1 max-w-lg w-full mx-auto p-6 flex flex-col justify-center relative z-10 -mt-16 pt-16">
+  <main class="flex-1 max-w-lg w-full mx-auto p-6 flex flex-col justify-center relative z-10">
     
     <!-- ==================== 開始画面 ==================== -->
     <div id="startScreen" class="flex-1 flex flex-col justify-center items-center text-center fade-up w-full transition-all duration-300">
-      
-      <!-- 開始画面のタイトル（クイズ開始時に消え、ヘッダーに移動する） -->
-      <div class="mb-10 mt-4">
-        <p class="text-accent font-serif tracking-widest text-sm mb-3">埼玉完全攻略</p>
-        <h1 class="text-4xl md:text-5xl font-serif font-bold text-ink tracking-widest leading-tight">
-          SAITAMANIA<br>
-          <span class="text-xl md:text-2xl mt-4 block text-subtle font-medium">埼玉探求の書</span>
-        </h1>
+      <div class="absolute top-0 right-0 p-4">
+        <button onclick="toggleDashboard()" class="p-2 text-stone-500 hover:text-accent transition-colors bg-white rounded-full shadow-soft border border-stone-100">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        </button>
       </div>
+
+      <p class="text-accent font-serif tracking-widest text-sm mb-3">埼玉完全攻略</p>
+      <h1 class="text-4xl md:text-5xl font-serif font-bold text-ink tracking-widest mb-8 leading-tight">
+        SAITAMANIA<br>
+        <span class="text-xl md:text-2xl mt-4 block text-subtle font-medium">埼玉探求の書</span>
+      </h1>
 
       <div id="loadingIndicator" class="animate-pulse text-stone-400 font-serif tracking-widest text-sm">
         叡智を読み込んでいます... ✧
       </div>
 
-      <div id="startMenu" class="hidden w-full max-w-sm space-y-6 fade-up text-left">
+      <div id="startMenu" class="hidden w-full max-w-sm space-y-5 fade-up text-left">
         
-        <div class="bg-stone-200/70 p-1 rounded-xl flex items-center space-x-1 text-xs font-serif font-bold mb-2">
+        <!-- モード切替 -->
+        <div class="bg-stone-200/70 p-1 rounded-xl flex items-center space-x-1 text-xs font-serif font-bold">
           <button id="modeAllBtn" onclick="switchMode('all')" class="flex-1 py-2.5 rounded-lg transition-all bg-white text-ink shadow-soft text-center">通常探求</button>
           <button id="modeReviewBtn" onclick="switchMode('review')" class="flex-1 py-2.5 rounded-lg transition-all text-subtle hover:text-ink relative text-center">
             復習探求 <span id="wrongBadge" class="hidden ml-1 px-1.5 py-0.2 bg-accent text-white text-[10px] rounded-full">0</span>
           </button>
         </div>
 
+        <!-- ★追加：探求の切り口（スコープ）選択 -->
+        <div class="space-y-2">
+          <p class="text-xs font-bold text-stone-400 tracking-widest uppercase ml-1">探求の切り口</p>
+          <div class="grid grid-cols-3 gap-2">
+            <button onclick="setScope('all')" id="scope-all" class="scope-btn py-2 border border-stone-200 rounded-lg text-xs font-serif bg-white transition-all ring-2 ring-accent border-accent text-accent font-bold bg-accentLight/30">
+              すべて
+            </button>
+            <button onclick="setScope('theme')" id="scope-theme" class="scope-btn py-2 border border-stone-200 rounded-lg text-xs font-serif bg-white text-stone-500 transition-all">
+              テーマ探求<br><span class="text-[9px] text-stone-400 font-sans leading-none">(系統地理)</span>
+            </button>
+            <button onclick="setScope('city')" id="scope-city" class="scope-btn py-2 border border-stone-200 rounded-lg text-xs font-serif bg-white text-stone-500 transition-all">
+              地域探求<br><span class="text-[9px] text-stone-400 font-sans leading-none">(地誌)</span>
+            </button>
+          </div>
+        </div>
+
         <div id="filterSection" class="space-y-3 bg-white p-4 rounded-xl border border-stone-100 shadow-soft">
-          <p class="text-xs font-bold text-stone-400 tracking-widest uppercase mb-1">探求領域を絞る</p>
-          <select id="filterCategory" onchange="applyFilters()" class="w-full bg-stone-50 border border-stone-200 text-stone-700 text-sm rounded-lg p-3 outline-none font-serif"></select>
+          <p class="text-xs font-bold text-stone-400 tracking-widest uppercase mb-1">条件を絞る</p>
+          <select id="filterCategory" onchange="applyFilters()" class="w-full bg-stone-50 border border-stone-200 text-stone-700 text-sm rounded-lg p-2.5 outline-none font-serif"></select>
           <div class="grid grid-cols-2 gap-3">
-            <select id="filterCity" onchange="applyFilters()" class="w-full bg-stone-50 border border-stone-200 text-stone-700 text-sm rounded-lg p-3 outline-none font-serif"></select>
-            <select id="filterDifficulty" onchange="applyFilters()" class="w-full bg-stone-50 border border-stone-200 text-stone-700 text-sm rounded-lg p-3 outline-none font-serif"></select>
+            <select id="filterCity" onchange="applyFilters()" class="w-full bg-stone-50 border border-stone-200 text-stone-700 text-sm rounded-lg p-2.5 outline-none font-serif"></select>
+            <select id="filterDifficulty" onchange="applyFilters()" class="w-full bg-stone-50 border border-stone-200 text-stone-700 text-sm rounded-lg p-2.5 outline-none font-serif"></select>
           </div>
         </div>
 
         <div id="countSelectorSection">
-          <p class="text-xs font-bold text-stone-400 tracking-widest uppercase mb-3">出題数</p>
-          <div class="grid grid-cols-2 gap-2.5" id="questionCountSelectors"></div>
+          <p class="text-xs font-bold text-stone-400 tracking-widest uppercase mb-2">出題数</p>
+          <div class="grid grid-cols-2 gap-2" id="questionCountSelectors"></div>
         </div>
         
         <div id="noDataNotice" class="hidden p-4 bg-stone-100 border border-stone-200 rounded-xl text-sm text-stone-600 font-serif text-center">条件に一致する探求が見つかりません。</div>
@@ -152,6 +169,7 @@
     <!-- ==================== クイズ画面 ==================== -->
     <div id="quizScreen" class="hidden flex-1 flex-col justify-center w-full pb-20">
       <div id="metaTags" class="flex flex-wrap items-center gap-2 mb-6">
+        <span id="scopeBadge" class="text-[10px] bg-stone-200 text-stone-600 px-2 py-0.5 rounded tracking-widest font-bold font-serif"></span>
         <span id="categoryBadge" class="text-[10px] bg-stone-200 text-stone-600 px-2 py-0.5 rounded tracking-widest"></span>
         <span id="cityBadge" class="text-xs font-serif font-bold tracking-widest text-accent border-b border-accent pb-0.5"></span>
         <span class="text-stone-300">|</span>
@@ -197,14 +215,12 @@
   <!-- ==================== マイページ（ダッシュボード）モーダル ==================== -->
   <div id="dashboardModal" class="fixed inset-0 z-50 hidden flex flex-col justify-end sm:justify-center items-center modal-overlay transition-opacity duration-300 opacity-0">
     <div class="bg-paper w-full max-w-md rounded-t-3xl sm:rounded-3xl shadow-2xl p-6 pb-12 sm:pb-6 transform translate-y-full sm:translate-y-0 transition-transform duration-300" id="dashboardContent">
-      
       <div class="flex justify-between items-center mb-6 border-b border-stone-200 pb-4">
         <h2 class="font-serif text-xl font-bold tracking-widest text-ink">探求の記録</h2>
         <button onclick="toggleDashboard()" class="p-2 bg-stone-100 rounded-full text-stone-500 hover:text-ink"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
       </div>
-
+      <!-- マイページ中身（前回と同じ） -->
       <div class="space-y-6 overflow-y-auto max-h-[70vh] pr-2">
-        <!-- 本日の記録 -->
         <div>
           <h3 class="text-xs font-bold text-stone-400 tracking-widest uppercase mb-3">Today / 本日の記録</h3>
           <div class="grid grid-cols-3 gap-3">
@@ -222,8 +238,6 @@
             </div>
           </div>
         </div>
-
-        <!-- 累計の記録 -->
         <div>
           <h3 class="text-xs font-bold text-stone-400 tracking-widest uppercase mb-3">Total / 累計の記録</h3>
           <div class="grid grid-cols-2 gap-3">
@@ -234,13 +248,10 @@
             <div class="bg-stone-100 border border-stone-200 rounded-xl p-4 flex flex-col justify-between">
               <p class="text-[10px] text-stone-500">埼玉神への道（全問クリア進捗）</p>
               <p class="font-serif text-2xl font-bold text-ink mt-1"><span id="dashProgressRate">0</span>%</p>
-              <div class="w-full bg-stone-300 h-1.5 rounded-full mt-2 overflow-hidden">
-                <div id="dashProgressBar" class="bg-accent h-full w-0 transition-all duration-1000"></div>
-              </div>
+              <div class="w-full bg-stone-300 h-1.5 rounded-full mt-2 overflow-hidden"><div id="dashProgressBar" class="bg-accent h-full w-0 transition-all duration-1000"></div></div>
               <p class="text-[10px] text-stone-500 mt-1 text-right"><span id="dashClearedCount">0</span> / <span id="dashTotalQuizzes">0</span> 問制覇</p>
             </div>
           </div>
-          
           <div class="grid grid-cols-3 gap-2 mt-3">
             <div class="bg-white border border-stone-100 rounded-lg p-2 text-center shadow-sm">
               <p class="text-[10px] text-stone-500">総回答</p>
@@ -256,7 +267,6 @@
             </div>
           </div>
         </div>
-
       </div>
     </div>
   </div>
@@ -271,7 +281,9 @@
     let FILTERED_DATA = []; 
     let QUIZ_DATABASE = []; 
     
+    // 状態管理
     let currentMode = 'all'; 
+    let currentScope = 'all'; // ★ 'all', 'theme'(SK), 'city'(SC)
     let selectedCount = 10; 
     let currentIndex = 0;
     let scoreHistory = []; 
@@ -281,7 +293,6 @@
 
     const startScreen = document.getElementById('startScreen');
     const mainHeader = document.getElementById('mainHeader');
-    const headerLogo = document.getElementById('headerLogo');
     const quizScreen = document.getElementById('quizScreen');
     const modeTag = document.getElementById('modeTag');
     const quizProgressBadge = document.getElementById('quizProgressBadge');
@@ -336,7 +347,6 @@
     function recordAnswer(quizId, isCorrect) {
       userStats.todayAnswers++;
       userStats.totalAnswers++;
-      
       if (isCorrect) {
         userStats.todayCorrects++;
         userStats.totalCorrects++;
@@ -346,7 +356,6 @@
         if (!WRONG_QUIZ_IDS.includes(quizId)) WRONG_QUIZ_IDS.push(quizId);
       }
       saveStats();
-      
       const wrongBadge = document.getElementById('wrongBadge');
       wrongBadge.textContent = WRONG_QUIZ_IDS.length;
       wrongBadge.classList.toggle('hidden', WRONG_QUIZ_IDS.length === 0);
@@ -364,7 +373,6 @@
     function toggleDashboard() {
       const modal = document.getElementById('dashboardModal');
       const content = document.getElementById('dashboardContent');
-      
       if (modal.classList.contains('hidden')) {
         updateDashboardUI();
         modal.classList.remove('hidden');
@@ -416,16 +424,11 @@
 
         if (data && data.length > 0) {
           ALL_QUIZ_DATA = data;
-          document.getElementById('filterCategory').add(new Option('すべてのカテゴリ', 'all'));
-          document.getElementById('filterCity').add(new Option('すべての市町村', 'all'));
-          document.getElementById('filterDifficulty').add(new Option('すべての難易度', 'all'));
-          
-          [...new Set(data.map(q=>q.category))].filter(Boolean).forEach(c => document.getElementById('filterCategory').add(new Option(c, c)));
-          [...new Set(data.map(q=>q.city))].filter(Boolean).forEach(c => document.getElementById('filterCity').add(new Option(c, c)));
-          [...new Set(data.map(q=>q.difficulty))].filter(Boolean).forEach(d => document.getElementById('filterDifficulty').add(new Option(d, d)));
-          
           loadingIndicator.classList.add('hidden');
           document.getElementById('startMenu').classList.remove('hidden');
+          mainHeader.classList.remove('hidden'); 
+          
+          populateFilters(ALL_QUIZ_DATA); // 初期状態のプルダウン作成
           applyFilters();
         } else {
           loadingIndicator.textContent = "データベースに問題がありません。";
@@ -434,6 +437,32 @@
         console.error("Initialization Error:", error);
         loadingIndicator.innerHTML = `<span class="text-xs text-red-600 font-sans leading-normal block">読み込み失敗:<br>${error.message}</span>`;
       }
+    }
+
+    // ★追加：スコープ（SK/SC）に応じてプルダウンの中身を再生成する
+    function populateFilters(targetData) {
+      const catSelect = document.getElementById('filterCategory');
+      const citySelect = document.getElementById('filterCity');
+      const difSelect = document.getElementById('filterDifficulty');
+      
+      // 現在の選択値を保存
+      const currentCat = catSelect.value || 'all';
+      const currentCity = citySelect.value || 'all';
+      const currentDif = difSelect.value || 'all';
+
+      // 一旦クリア
+      catSelect.innerHTML = '<option value="all">すべてのカテゴリ</option>';
+      citySelect.innerHTML = '<option value="all">すべての市町村</option>';
+      difSelect.innerHTML = '<option value="all">すべての難易度</option>';
+
+      [...new Set(targetData.map(q=>q.category))].filter(Boolean).forEach(c => catSelect.add(new Option(c, c)));
+      [...new Set(targetData.map(q=>q.city))].filter(Boolean).forEach(c => citySelect.add(new Option(c, c)));
+      [...new Set(targetData.map(q=>q.difficulty))].filter(Boolean).forEach(d => difSelect.add(new Option(d, d)));
+
+      // 以前の選択値が存在すれば復元
+      if (Array.from(catSelect.options).some(o => o.value === currentCat)) catSelect.value = currentCat;
+      if (Array.from(citySelect.options).some(o => o.value === currentCity)) citySelect.value = currentCity;
+      if (Array.from(difSelect.options).some(o => o.value === currentDif)) difSelect.value = currentDif;
     }
 
     window.switchMode = function(mode) {
@@ -451,9 +480,34 @@
       applyFilters();
     }
 
-    window.applyFilters = function() {
-      let pool = currentMode === 'all' ? ALL_QUIZ_DATA : ALL_QUIZ_DATA.filter(q => WRONG_QUIZ_IDS.includes(q.quizId));
+    // ★追加：切り口（スコープ）の変更処理
+    window.setScope = function(scope) {
+      currentScope = scope;
+      document.querySelectorAll('.scope-btn').forEach(btn => {
+        btn.className = "scope-btn py-2 border border-stone-200 rounded-lg text-xs font-serif bg-white text-stone-500 transition-all";
+      });
+      const selectedBtn = document.getElementById(`scope-${scope}`);
+      selectedBtn.className = "scope-btn py-2 border border-stone-200 rounded-lg text-xs font-serif bg-white transition-all ring-2 ring-accent border-accent text-accent font-bold bg-accentLight/30";
       
+      // スコープで絞ったデータを元にプルダウンを作り直す
+      let scopedData = ALL_QUIZ_DATA;
+      if (scope === 'theme') scopedData = ALL_QUIZ_DATA.filter(q => q.knowledgeId && q.knowledgeId.startsWith('SK'));
+      if (scope === 'city') scopedData = ALL_QUIZ_DATA.filter(q => q.knowledgeId && q.knowledgeId.startsWith('SC'));
+      
+      populateFilters(scopedData);
+      applyFilters();
+    }
+
+    window.applyFilters = function() {
+      // 1. スコープ（SK/SC）で絞る
+      let pool = ALL_QUIZ_DATA;
+      if (currentScope === 'theme') pool = pool.filter(q => q.knowledgeId && q.knowledgeId.startsWith('SK'));
+      if (currentScope === 'city') pool = pool.filter(q => q.knowledgeId && q.knowledgeId.startsWith('SC'));
+
+      // 2. モード（通常/復習）で絞る
+      if (currentMode === 'review') pool = pool.filter(q => WRONG_QUIZ_IDS.includes(q.quizId));
+      
+      // 3. プルダウンで絞る
       const cat = document.getElementById('filterCategory').value;
       const cty = document.getElementById('filterCity').value;
       const dif = document.getElementById('filterDifficulty').value;
@@ -510,11 +564,6 @@
       modeTag.classList.remove('hidden');
       quizProgressBadge.classList.remove('hidden');
 
-      // ヘッダーの装飾とロゴ表示
-      mainHeader.classList.add('glass-header', 'border-stone-200');
-      mainHeader.classList.remove('border-transparent');
-      headerLogo.classList.remove('hidden');
-
       startScreen.classList.add('hidden');
       quizScreen.classList.remove('hidden');
       quizScreen.classList.add('flex');
@@ -539,6 +588,15 @@
 
       const data = QUIZ_DATABASE[index];
       
+      // ★追加：スコープのバッジ表示
+      let scopeLabel = "";
+      if (data.knowledgeId && data.knowledgeId.startsWith('SK')) scopeLabel = "テーマ(SK)";
+      else if (data.knowledgeId && data.knowledgeId.startsWith('SC')) scopeLabel = "地域(SC)";
+      
+      const sBadge = document.getElementById('scopeBadge');
+      sBadge.textContent = scopeLabel;
+      sBadge.style.display = scopeLabel ? 'inline-block' : 'none';
+
       document.getElementById('categoryBadge').textContent = data.category || "未分類";
       document.getElementById('categoryBadge').style.display = data.category ? 'inline-block' : 'none';
       document.getElementById('cityBadge').textContent = data.city || "埼玉全域";
